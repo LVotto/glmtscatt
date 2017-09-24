@@ -47,6 +47,7 @@ class SphericalField(Field):
     def abs(self, radial, theta, phi):
         return self.functions['r'](radial, theta, phi)
 
+
 class CartesianField(Field):
     """ Represents a tridimensional field in cartesian coordinates
     """
@@ -98,3 +99,61 @@ def legendre_pi(degree, order, argument):
     """ Generalized associated Legendre function pi
     """
     return legendre_p(degree, order, argument) / (1 - argument * argument)
+
+EPSILON = 1E-5
+AXICON = 0.349066  # 20 degrees
+MAX_IT = 1E4
+
+def bromwich_scalar_g_exa(degree, axicon=AXICON):
+    """ Computes exact BSC
+
+    From eq. 5 in AMBROSIO, Leonardo et al. !!! NEED REFERENCE
+    """
+    # FIXME
+    return (1 + np.cos(axicon)) / (2 * degree * (degree + 1)) \
+            * (legendre_tau(degree, 1, np.cos(axicon)) \
+               + legendre_pi(degree, 1, np.cos(axicon)))
+
+def bromwich_scalar_g(degree, order, axicon=AXICON, mode='TM'):
+    """ Computes BSC in terms of degree and order
+    """
+    if mode == 'TM':
+        return bromwich_scalar_g_exa(degree, axicon=axicon) / 2
+    if mode == 'TE':
+        retval = np.complex(0, 1) \
+                     * bromwich_scalar_g_exa(degree, axicon=axicon) / 2
+        if order > 0:
+            return retval
+        else:
+            return -retval
+
+def plane_wave_coefficient(degree, wave_number_k):
+    """ Computes plane wave coefficient c_{n}^{pw}
+
+    From eq. (III.3) in GOUESBET, Gerárd !!! NEED REFERENCE
+    """
+    # FIXME
+    return (1 / (np.complex(0, 1) * wave_number_k)) \
+            * pow(-np.complex(0, 1), degree) \
+            * (2 * degree + 1) / (degree * (degree + 1))
+
+def radial_electric_i_tm(radial, theta, phi, wave_number_k):
+    """ Computes the radial component of inciding electric field in TM mode.
+    """
+    error = float('inf')
+    result = 0
+    last_result = 0
+    n = 0
+    m = 0
+
+    while error > EPSILON and n < MAX_IT:
+        for m in [-1, 1]:
+            result += plane_wave_coefficient(n, wave_number_k) \
+                      * bromwich_scalar_g(n, m) \
+                      * (d2_riccati_bessel_j(n, wave_number_k * radial)[n] \
+                       - riccati_bessel_j(n, wave_number_k * radial)[n]) \
+                      * legendre_p(n, m, np.cos(theta)) \
+                      * np.exp(np.imag * m * phi)
+        error = np.abs(last_result - result).sum()
+        last_result = result[:]
+        n += 1
