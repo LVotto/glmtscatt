@@ -152,9 +152,10 @@ def radial_electric_i_tm(radial, theta, phi, wave_number_k):
 
     riccati_bessel_list = _riccati_bessel_j(MAX_IT, wave_number_k * radial)
     riccati_bessel = riccati_bessel_list[0]
-    d2_riccati_bessel = d2_riccati_bessel_j(MAX_IT, (wave_number_k * radial))
 
-    while n < MAX_IT:
+    d2_riccati_bessel = d2_riccati_bessel_j(MAX_IT, wave_number_k * radial)
+
+    while error > EPSILON and n < MAX_IT:
         for m in [-1, 1]:
             result += plane_wave_coefficient(n, wave_number_k) \
                       * bromwich_scalar_g(n, m, mode='TM') \
@@ -166,4 +167,5 @@ def radial_electric_i_tm(radial, theta, phi, wave_number_k):
         n += 1
 
     print('IT =', n)
+
     return result
