@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-Spyder Editor
-
 Sandbox for better understanding of the application's structure. In further
 commits, this file should not exist and its parts should become auxiliary
 modules for the application.
@@ -14,6 +12,10 @@ from scipy import special
 import numpy as np
 
 
+EPSILON = 1E-5
+AXICON = 0.349066  # 20 degrees
+MAX_IT = 1E4
+
 
 class Field(ABC):
     """ This is representative of a Field in tridimensional space.
@@ -23,12 +25,12 @@ class Field(ABC):
     def __init__(self, **kwargs):
         self.functions = kwargs
 
-    def evaluate(self, **kwargs):
-        """ Evaluates the value of a field given a point.
+    def evaluate(self, *args, **kwargs):
+        """ Evaluates the value of the field given a point.
         """
         result = []
         for key in kwargs:
-            result.append(self.functions[key](kwargs[key]))
+            result.append(self.functions[key](*args, **kwargs) or 0)
         return np.array(result)
 
     @abstractmethod
@@ -45,7 +47,7 @@ class SphericalField(Field):
         super(SphericalField, self).__init__(**kwargs)
 
     def abs(self, radial, theta, phi):
-        return self.functions['r'](radial, theta, phi)
+        return np.abs(self.functions['r'](radial, theta, phi))
 
 
 class CartesianField(Field):
@@ -59,6 +61,10 @@ class CartesianField(Field):
         return np.linalg.norm(
             self.evaluate(x=x_value, y=y_value, z=z_value))
 
+def _riccati_bessel_j(degree, argument):
+    """ Riccati-Bessel function of first kind and derivative
+    """
+    return special.riccati_jn(degree, argument)
 
 def riccati_bessel_j(degree, argument):
     """ Riccati-Bessel function of first kind
@@ -75,10 +81,18 @@ def d2_riccati_bessel_j(degree, argument):
 
     This was made based on relations 10.51.2 from: http://dlmf.nist.gov/10.51
     """
-    return riccati_bessel_j(degree - 2, argument) \
+    values = _riccati_bessel_j(degree, argument)
+    values_2 = np.roll(values[0], 2)
+    values_2[0] = values_2[1] = 0
+    print('VALUES = ', values)
+    print('VALUES 0 = ', values[0])
+    print('VALUES 1 = ', values[1])
+    print('VALUES 2 = ', values_2)
+
+    return values_2 \
            - (degree + 1) * degree \
-             * riccati_bessel_j(degree, argument) / (argument * argument) \
-           - 2 * (degree + 1) * d_riccati_bessel_j(degree, argument) / argument
+             * values[0] / (argument * argument) \
+           - 2 * (degree + 1) * values[1] / argument
 
 def legendre_p(degree, order, argument):
     """ Associated Legendre function of integer order
@@ -100,16 +114,9 @@ def legendre_pi(degree, order, argument):
     """
     return legendre_p(degree, order, argument) / (1 - argument * argument)
 
-EPSILON = 1E-5
-AXICON = 0.349066  # 20 degrees
-MAX_IT = 1E4
-
 def bromwich_scalar_g_exa(degree, axicon=AXICON):
-    """ Computes exact BSC
-
-    From eq. 5 in AMBROSIO, Leonardo et al. !!! NEED REFERENCE
+    """ Computes exact BSC from equations referenced by the article
     """
-    # FIXME
     return (1 + np.cos(axicon)) / (2 * degree * (degree + 1)) \
             * (legendre_tau(degree, 1, np.cos(axicon)) \
                + legendre_pi(degree, 1, np.cos(axicon)))
@@ -129,10 +136,7 @@ def bromwich_scalar_g(degree, order, axicon=AXICON, mode='TM'):
 
 def plane_wave_coefficient(degree, wave_number_k):
     """ Computes plane wave coefficient c_{n}^{pw}
-
-    From eq. (III.3) in GOUESBET, Gerárd !!! NEED REFERENCE
     """
-    # FIXME
     return (1 / (np.complex(0, 1) * wave_number_k)) \
             * pow(-np.complex(0, 1), degree) \
             * (2 * degree + 1) / (degree * (degree + 1))
@@ -143,17 +147,23 @@ def radial_electric_i_tm(radial, theta, phi, wave_number_k):
     error = float('inf')
     result = 0
     last_result = 0
-    n = 0
+    n = 1
     m = 0
 
-    while error > EPSILON and n < MAX_IT:
+    riccati_bessel_list = _riccati_bessel_j(MAX_IT, wave_number_k * radial)
+    riccati_bessel = riccati_bessel_list[0]
+    d2_riccati_bessel = d2_riccati_bessel_j(MAX_IT, (wave_number_k * radial))
+
+    while n < MAX_IT:
         for m in [-1, 1]:
             result += plane_wave_coefficient(n, wave_number_k) \
-                      * bromwich_scalar_g(n, m) \
-                      * (d2_riccati_bessel_j(n, wave_number_k * radial)[n] \
-                       - riccati_bessel_j(n, wave_number_k * radial)[n]) \
+                      * bromwich_scalar_g(n, m, mode='TM') \
+                      * (d2_riccati_bessel[n] - riccati_bessel[n]) \
                       * legendre_p(n, m, np.cos(theta)) \
-                      * np.exp(np.imag * m * phi)
+                      * np.exp(np.complex(0, 1) * m * phi)
         error = np.abs(last_result - result).sum()
-        last_result = result[:]
+        last_result = result
         n += 1
+
+    print('IT =', n)
+    return result
