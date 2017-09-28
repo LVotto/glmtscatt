@@ -10,11 +10,15 @@ Author: Luiz Felipe Machado Votto
 from abc import ABC, abstractmethod
 from scipy import special
 import numpy as np
+import matplotlib.pyplot as plt
 
 
-EPSILON = 1E-5
-AXICON = 0.349066  # 20 degrees
-MAX_IT = 1E4
+EPSILON = 1E-20
+AXICON = 180 / np.pi  # 1 degree
+# 0.349066  # 20 degrees
+MAX_IT = 10
+WAVELENGTH = 1064E-9
+WAVE_NUMBER = 2 * np.pi / WAVELENGTH
 
 
 class Field(ABC):
@@ -114,12 +118,15 @@ def legendre_pi(degree, order, argument):
     """
     return legendre_p(degree, order, argument) / (1 - argument * argument)
 
-def bromwich_scalar_g_exa(degree, axicon=AXICON):
+def bromwich_scalar_g_exa(degree, axicon=AXICON, bessel=True):
     """ Computes exact BSC from equations referenced by the article
     """
+    if bessel:
+        return special.j0((degree + 1/2) * np.sin(axicon))
     return (1 + np.cos(axicon)) / (2 * degree * (degree + 1)) \
             * (legendre_tau(degree, 1, np.cos(axicon)) \
                + legendre_pi(degree, 1, np.cos(axicon)))
+    
 
 def bromwich_scalar_g(degree, order, axicon=AXICON, mode='TM'):
     """ Computes BSC in terms of degree and order
@@ -145,6 +152,7 @@ def radial_electric_i_tm(radial, theta, phi, wave_number_k):
     """ Computes the radial component of inciding electric field in TM mode.
     """
     error = float('inf')
+    increment = float('inf')
     result = 0
     last_result = 0
     n = 1
@@ -155,17 +163,44 @@ def radial_electric_i_tm(radial, theta, phi, wave_number_k):
 
     d2_riccati_bessel = d2_riccati_bessel_j(MAX_IT, wave_number_k * radial)
 
-    while error > EPSILON and n < MAX_IT:
+    while n < MAX_IT:
         for m in [-1, 1]:
-            result += plane_wave_coefficient(n, wave_number_k) \
+            increment = plane_wave_coefficient(n, wave_number_k) \
                       * bromwich_scalar_g(n, m, mode='TM') \
                       * (d2_riccati_bessel[n] - riccati_bessel[n]) \
                       * legendre_p(n, m, np.cos(theta)) \
                       * np.exp(np.complex(0, 1) * m * phi)
-        error = np.abs(last_result - result).sum()
+            result += increment
+        error = abs(result - last_result)/ abs(result)
         last_result = result
         n += 1
+        print('ERROR = ', error)
+        print('INCRE = ', increment)
 
     print('IT =', n)
+    print(abs(result))
 
-    return result
+    return abs(result)
+
+START = EPSILON
+STOP = 10/WAVE_NUMBER
+NUM = 1000
+
+def do_some_plotting(function, *args, start=START, stop=STOP, num=NUM):
+        t = np.linspace(start, stop, num=num)
+        s=[]
+        for j in t:
+            s.append(function(j, *args))
+        maxs = max(s)
+        for i in range(0,len(s)):
+            s[i] /= maxs
+        plt.plot(t, s)
+
+
+def bessel_0(argument, scale):
+    return abs(special.j0(scale * argument))
+
+do_some_plotting(radial_electric_i_tm, np.pi/2, 0, WAVE_NUMBER)
+do_some_plotting(bessel_0, WAVE_NUMBER * np.sin(AXICON))
+        
+    
