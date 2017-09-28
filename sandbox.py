@@ -13,10 +13,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-EPSILON = 1E-20
-AXICON = 180 / np.pi  # 1 degree
+EPSILON = 1E-30
+AXICON = 1.8 / np.pi  # 1 degree
 # 0.349066  # 20 degrees
-MAX_IT = 10
+MAX_IT = 1000
 WAVELENGTH = 1064E-9
 WAVE_NUMBER = 2 * np.pi / WAVELENGTH
 
@@ -88,10 +88,6 @@ def d2_riccati_bessel_j(degree, argument):
     values = _riccati_bessel_j(degree, argument)
     values_2 = np.roll(values[0], 2)
     values_2[0] = values_2[1] = 0
-    print('VALUES = ', values)
-    print('VALUES 0 = ', values[0])
-    print('VALUES 1 = ', values[1])
-    print('VALUES 2 = ', values_2)
 
     return values_2 \
            - (degree + 1) * degree \
@@ -148,6 +144,20 @@ def plane_wave_coefficient(degree, wave_number_k):
             * pow(-np.complex(0, 1), degree) \
             * (2 * degree + 1) / (degree * (degree + 1))
 
+def radial_electric_increment(radial, theta, phi, wave_number_k, n, m):
+    riccati_bessel_list = _riccati_bessel_j(n, wave_number_k * radial)
+    riccati_bessel = riccati_bessel_list[0]
+
+    d2_riccati_bessel = d2_riccati_bessel_j(n, wave_number_k * radial)
+    print('N = ', n, ': ',  legendre_p(n, 1, np.cos(theta)))
+    increment = plane_wave_coefficient(n, wave_number_k) \
+                      * bromwich_scalar_g(n, m, mode='TM') \
+                      * (d2_riccati_bessel[n] - riccati_bessel[n]) \
+                      * legendre_p(n, m, np.cos(theta)) \
+                      * np.exp(np.complex(0, 1) * m * phi)
+
+    return abs(increment)
+
 def radial_electric_i_tm(radial, theta, phi, wave_number_k):
     """ Computes the radial component of inciding electric field in TM mode.
     """
@@ -163,7 +173,7 @@ def radial_electric_i_tm(radial, theta, phi, wave_number_k):
 
     d2_riccati_bessel = d2_riccati_bessel_j(MAX_IT, wave_number_k * radial)
 
-    while n < MAX_IT:
+    while n < MAX_IT and error > EPSILON:
         for m in [-1, 1]:
             increment = plane_wave_coefficient(n, wave_number_k) \
                       * bromwich_scalar_g(n, m, mode='TM') \
@@ -174,13 +184,66 @@ def radial_electric_i_tm(radial, theta, phi, wave_number_k):
         error = abs(result - last_result)/ abs(result)
         last_result = result
         n += 1
-        print('ERROR = ', error)
-        print('INCRE = ', increment)
-
-    print('IT =', n)
-    print(abs(result))
-
+        
     return abs(result)
+        
+def theta_electric_i_tm(radial, theta, phi, wave_number_k):
+    error = float('inf')
+    increment = float('inf')
+    result = 0
+    last_result = 0
+    n = 1
+    m = 0
+
+    riccati_bessel_list = _riccati_bessel_j(MAX_IT, wave_number_k * radial)
+    d_riccati_bessel = riccati_bessel_list[1]
+
+    d2_riccati_bessel = d2_riccati_bessel_j(MAX_IT, wave_number_k * radial)
+
+    while n < MAX_IT and error > EPSILON:
+        for m in [-1, 1]:
+            increment = plane_wave_coefficient(n, wave_number_k) \
+                      * bromwich_scalar_g(n, m, mode='TM') \
+                      * d_riccati_bessel[n] \
+                      * legendre_tau(n, m, np.cos(theta)) \
+                      * np.exp(np.complex(0, 1) * m * phi)
+            result += increment
+        error = abs(result - last_result)/ abs(result)
+        last_result = result
+        n += 1
+        
+    return abs(result)
+
+def phi_electric_i_tm(radial, theta, phi, wave_number_k):
+    error = float('inf')
+    increment = float('inf')
+    result = 0
+    last_result = 0
+    n = 1
+    m = 0
+
+    riccati_bessel_list = _riccati_bessel_j(MAX_IT, wave_number_k * radial)
+    d_riccati_bessel = riccati_bessel_list[1]
+
+    while n < MAX_IT and error > EPSILON:
+        for m in [-1, 1]:
+            increment = plane_wave_coefficient(n, wave_number_k) \
+                      * bromwich_scalar_g(n, m, mode='TM') \
+                      * d_riccati_bessel[n] \
+                      * legendre_pi(n, m, np.cos(theta)) \
+                      * np.exp(np.complex(0, 1) * m * phi)
+            result += increment
+        error = abs(result - last_result)/ abs(result)
+        last_result = result
+        n += 1
+        
+    return abs(result)
+
+def square_absolute(radial, theta, phi, wave_number_k):
+    retval = pow(radial_electric_i_tm(radial, theta, phi, wave_number_k), 2)
+    retval += pow(1/radial*theta_electric_i_tm(radial, theta, phi, wave_number_k), 2)
+    retval += pow(1/radial*phi_electric_i_tm(radial, theta, phi, wave_number_k),2)
+    return retval
 
 START = EPSILON
 STOP = 10/WAVE_NUMBER
@@ -198,9 +261,13 @@ def do_some_plotting(function, *args, start=START, stop=STOP, num=NUM):
 
 
 def bessel_0(argument, scale):
-    return abs(special.j0(scale * argument))
+    return pow(special.j0(scale * argument), 2)
 
-do_some_plotting(radial_electric_i_tm, np.pi/2, 0, WAVE_NUMBER)
+do_some_plotting(square_absolute, np.pi/2, 0, WAVE_NUMBER)
 do_some_plotting(bessel_0, WAVE_NUMBER * np.sin(AXICON))
+plt.show()
+
+# do_some_plotting(radial_electric_i_tm, np.pi/2, 0, WAVE_NUMBER)
+
         
     
