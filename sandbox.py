@@ -114,7 +114,7 @@ def legendre_pi(degree, order, argument):
     """
     return legendre_p(degree, order, argument) / (1 - argument * argument)
 
-def bromwich_scalar_g_exa(degree, axicon=AXICON, bessel=True):
+def beam_shape_g_exa(degree, axicon=AXICON, bessel=True):
     """ Computes exact BSC from equations referenced by the article
     """
     if bessel:
@@ -124,14 +124,14 @@ def bromwich_scalar_g_exa(degree, axicon=AXICON, bessel=True):
                + legendre_pi(degree, 1, np.cos(axicon)))
     
 
-def bromwich_scalar_g(degree, order, axicon=AXICON, mode='TM'):
+def beam_shape_g(degree, order, axicon=AXICON, mode='TM'):
     """ Computes BSC in terms of degree and order
     """
     if mode == 'TM':
-        return bromwich_scalar_g_exa(degree, axicon=axicon) / 2
+        return beam_shape_g_exa(degree, axicon=axicon) / 2
     if mode == 'TE':
         retval = np.complex(0, 1) \
-                     * bromwich_scalar_g_exa(degree, axicon=axicon) / 2
+                     * beam_shape_g_exa(degree, axicon=axicon) / 2
         if order > 0:
             return retval
         else:
@@ -151,7 +151,7 @@ def radial_electric_increment(radial, theta, phi, wave_number_k, n, m):
     d2_riccati_bessel = d2_riccati_bessel_j(n, wave_number_k * radial)
     print('N = ', n, ': ',  legendre_p(n, 1, np.cos(theta)))
     increment = plane_wave_coefficient(n, wave_number_k) \
-                      * bromwich_scalar_g(n, m, mode='TM') \
+                      * beam_shape_g(n, m, mode='TM') \
                       * (d2_riccati_bessel[n] - riccati_bessel[n]) \
                       * legendre_p(n, m, np.cos(theta)) \
                       * np.exp(np.complex(0, 1) * m * phi)
@@ -176,7 +176,7 @@ def radial_electric_i_tm(radial, theta, phi, wave_number_k):
     while n < MAX_IT and error > EPSILON:
         for m in [-1, 1]:
             increment = plane_wave_coefficient(n, wave_number_k) \
-                      * bromwich_scalar_g(n, m, mode='TM') \
+                      * beam_shape_g(n, m, mode='TM') \
                       * (d2_riccati_bessel[n] - riccati_bessel[n]) \
                       * legendre_p(n, m, np.cos(theta)) \
                       * np.exp(np.complex(0, 1) * m * phi)
@@ -203,10 +203,36 @@ def theta_electric_i_tm(radial, theta, phi, wave_number_k):
     while n < MAX_IT and error > EPSILON:
         for m in [-1, 1]:
             increment = plane_wave_coefficient(n, wave_number_k) \
-                      * bromwich_scalar_g(n, m, mode='TM') \
+                      * beam_shape_g(n, m, mode='TM') \
                       * d_riccati_bessel[n] \
-                      * legendre_tau(n, m, np.cos(theta)) \
-                      * np.exp(np.complex(0, 1) * m * phi)
+                      * legendre_tau(n, 1, np.cos(theta)) \
+                      * np.exp(1j * m * phi)
+            result += increment
+        error = abs(result - last_result)/ abs(result)
+        last_result = result
+        n += 1
+        
+    return result / radial
+
+def theta_electric_i_te(radial, theta, phi, wave_number_k):
+    error = float('inf')
+    increment = float('inf')
+    result = 0
+    last_result = 0
+    n = 1
+    m = 0
+
+    riccati_bessel_list = _riccati_bessel_j(MAX_IT, wave_number_k * radial)
+    riccati_bessel = riccati_bessel_list[0]
+
+    while n < MAX_IT:
+        for m in [-1, 1]:
+            increment = m \
+                      * plane_wave_coefficient(n, wave_number_k) \
+                      * beam_shape_g(n, m, mode='TE') \
+                      * riccati_bessel[n] \
+                      * legendre_pi(n, 1, np.cos(theta)) \
+                      * np.exp(1j * m * phi)
             result += increment
         error = abs(result - last_result)/ abs(result)
         last_result = result
@@ -227,11 +253,37 @@ def phi_electric_i_tm(radial, theta, phi, wave_number_k):
 
     while n < MAX_IT and error > EPSILON:
         for m in [-1, 1]:
-            increment = plane_wave_coefficient(n, wave_number_k) \
-                      * bromwich_scalar_g(n, m, mode='TM') \
+            increment = m \
+                      * plane_wave_coefficient(n, wave_number_k) \
+                      * beam_shape_g(n, m, mode='TM') \
                       * d_riccati_bessel[n] \
-                      * legendre_pi(n, m, np.cos(theta)) \
-                      * np.exp(np.complex(0, 1) * m * phi)
+                      * legendre_pi(n, 1, np.cos(theta)) \
+                      * np.exp(1j * m * phi)
+            result += increment
+        error = abs(result - last_result)/ abs(result)
+        last_result = result
+        n += 1
+        
+    return 1j * result / radial
+
+def phi_electric_i_te(radial, theta, phi, wave_number_k):
+    error = float('inf')
+    increment = float('inf')
+    result = 0
+    last_result = 0
+    n = 1
+    m = 0
+
+    riccati_bessel_list = _riccati_bessel_j(MAX_IT, wave_number_k * radial)
+    riccati_bessel = riccati_bessel_list[0]
+
+    while n < MAX_IT:
+        for m in [-1, 1]:
+            increment = plane_wave_coefficient(n, wave_number_k) \
+                      * beam_shape_g(n, m, mode='TE') \
+                      * riccati_bessel[n] \
+                      * legendre_tau(n, 1, np.cos(theta)) \
+                      * np.exp(1j * m * phi)
             result += increment
         error = abs(result - last_result)/ abs(result)
         last_result = result
