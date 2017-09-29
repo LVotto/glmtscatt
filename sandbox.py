@@ -14,9 +14,9 @@ import matplotlib.pyplot as plt
 
 
 EPSILON = 1E-30
-AXICON = 1.8 / np.pi  # 1 degree
+AXICON = np.pi / 180  # 1 degree
 # 0.349066  # 20 degrees
-MAX_IT = 1000
+MAX_IT = 200
 WAVELENGTH = 1064E-9
 WAVE_NUMBER = 2 * np.pi / WAVELENGTH
 
@@ -80,7 +80,14 @@ def d_riccati_bessel_j(degree, argument):
     """
     return special.riccati_jn(degree, argument)[1]
 
+
 def d2_riccati_bessel_j(degree, argument):
+    """ d2 Psi """
+    return 1 / argument \
+            * (degree + pow(degree, 2) - pow(argument, 2)) \
+            * special.spherical_jn(degree, argument)
+
+def _d2_riccati_bessel_j(degree, argument):
     """ Second order derivative of Riccati-Bessel function of first kind
 
     This was made based on relations 10.51.2 from: http://dlmf.nist.gov/10.51
@@ -97,7 +104,10 @@ def d2_riccati_bessel_j(degree, argument):
 def legendre_p(degree, order, argument):
     """ Associated Legendre function of integer order
     """
-    return special.lpmv(degree, order, argument)
+    # TODO: IN THE PAPER YOU JUST GOT
+    # if m < 0:
+    #     return pow(-1, -m) * (n + m)
+    return special.lpmv(order, degree, argument)
 
 def legendre_tau(degree, order, argument):
     """ Returns generalized Legendre function tau
@@ -105,14 +115,14 @@ def legendre_tau(degree, order, argument):
     Derivative is calculated based on relation 14.10.5:
     http://dlmf.nist.gov/14.10
     """
-    return ((degree - order - 1) * legendre_p(degree - 1, order, argument) \
-            - degree * argument * legendre_p(degree, order, argument)) \
-            / (1 - argument*argument)
+    return (degree * argument * legendre_p(degree, order, argument) \
+            - (degree + order) * legendre_p(degree - 1, order, argument)) \
+            / np.sqrt(1 - argument * argument)
 
 def legendre_pi(degree, order, argument):
     """ Generalized associated Legendre function pi
     """
-    return legendre_p(degree, order, argument) / (1 - argument * argument)
+    return legendre_p(degree, order, argument) / np.sqrt(1 - argument * argument)
 
 def beam_shape_g_exa(degree, axicon=AXICON, bessel=True):
     """ Computes exact BSC from equations referenced by the article
@@ -130,8 +140,7 @@ def beam_shape_g(degree, order, axicon=AXICON, mode='TM'):
     if mode == 'TM':
         return beam_shape_g_exa(degree, axicon=axicon) / 2
     if mode == 'TE':
-        retval = np.complex(0, 1) \
-                     * beam_shape_g_exa(degree, axicon=axicon) / 2
+        retval = 1j * beam_shape_g_exa(degree, axicon=axicon) / 2
         if order > 0:
             return retval
         else:
@@ -140,52 +149,35 @@ def beam_shape_g(degree, order, axicon=AXICON, mode='TM'):
 def plane_wave_coefficient(degree, wave_number_k):
     """ Computes plane wave coefficient c_{n}^{pw}
     """
-    return (1 / (np.complex(0, 1) * wave_number_k)) \
-            * pow(-np.complex(0, 1), degree) \
+    return (1 / (1j * wave_number_k)) \
+            * pow(-1j, degree) \
             * (2 * degree + 1) / (degree * (degree + 1))
-
-def radial_electric_increment(radial, theta, phi, wave_number_k, n, m):
-    riccati_bessel_list = _riccati_bessel_j(n, wave_number_k * radial)
-    riccati_bessel = riccati_bessel_list[0]
-
-    d2_riccati_bessel = d2_riccati_bessel_j(n, wave_number_k * radial)
-    print('N = ', n, ': ',  legendre_p(n, 1, np.cos(theta)))
-    increment = plane_wave_coefficient(n, wave_number_k) \
-                      * beam_shape_g(n, m, mode='TM') \
-                      * (d2_riccati_bessel[n] - riccati_bessel[n]) \
-                      * legendre_p(n, m, np.cos(theta)) \
-                      * np.exp(np.complex(0, 1) * m * phi)
-
-    return abs(increment)
 
 def radial_electric_i_tm(radial, theta, phi, wave_number_k):
     """ Computes the radial component of inciding electric field in TM mode.
     """
     error = float('inf')
-    increment = float('inf')
     result = 0
     last_result = 0
     n = 1
-    m = 0
 
     riccati_bessel_list = _riccati_bessel_j(MAX_IT, wave_number_k * radial)
     riccati_bessel = riccati_bessel_list[0]
 
-    d2_riccati_bessel = d2_riccati_bessel_j(MAX_IT, wave_number_k * radial)
-
-    while n < MAX_IT and error > EPSILON:
+    while n < MAX_IT:
         for m in [-1, 1]:
             increment = plane_wave_coefficient(n, wave_number_k) \
                       * beam_shape_g(n, m, mode='TM') \
-                      * (d2_riccati_bessel[n] - riccati_bessel[n]) \
-                      * legendre_p(n, m, np.cos(theta)) \
-                      * np.exp(np.complex(0, 1) * m * phi)
+                      * (d2_riccati_bessel_j(n, wave_number_k * radial) \
+                         + riccati_bessel[n]) \
+                      * legendre_p(n, 1, np.cos(theta)) \
+                      * np.exp(1j * m * phi)
             result += increment
         error = abs(result - last_result)/ abs(result)
         last_result = result
         n += 1
         
-    return abs(result)
+    return wave_number_k * result
         
 def theta_electric_i_tm(radial, theta, phi, wave_number_k):
     error = float('inf')
@@ -198,9 +190,7 @@ def theta_electric_i_tm(radial, theta, phi, wave_number_k):
     riccati_bessel_list = _riccati_bessel_j(MAX_IT, wave_number_k * radial)
     d_riccati_bessel = riccati_bessel_list[1]
 
-    d2_riccati_bessel = d2_riccati_bessel_j(MAX_IT, wave_number_k * radial)
-
-    while n < MAX_IT and error > EPSILON:
+    while n < MAX_IT:
         for m in [-1, 1]:
             increment = plane_wave_coefficient(n, wave_number_k) \
                       * beam_shape_g(n, m, mode='TM') \
@@ -212,7 +202,7 @@ def theta_electric_i_tm(radial, theta, phi, wave_number_k):
         last_result = result
         n += 1
         
-    return result / radial
+    return abs(result / radial)
 
 def theta_electric_i_te(radial, theta, phi, wave_number_k):
     error = float('inf')
@@ -220,7 +210,6 @@ def theta_electric_i_te(radial, theta, phi, wave_number_k):
     result = 0
     last_result = 0
     n = 1
-    m = 0
 
     riccati_bessel_list = _riccati_bessel_j(MAX_IT, wave_number_k * radial)
     riccati_bessel = riccati_bessel_list[0]
@@ -238,7 +227,7 @@ def theta_electric_i_te(radial, theta, phi, wave_number_k):
         last_result = result
         n += 1
         
-    return abs(result)
+    return result / radial
 
 def phi_electric_i_tm(radial, theta, phi, wave_number_k):
     error = float('inf')
@@ -251,7 +240,7 @@ def phi_electric_i_tm(radial, theta, phi, wave_number_k):
     riccati_bessel_list = _riccati_bessel_j(MAX_IT, wave_number_k * radial)
     d_riccati_bessel = riccati_bessel_list[1]
 
-    while n < MAX_IT and error > EPSILON:
+    while n < MAX_IT:
         for m in [-1, 1]:
             increment = m \
                       * plane_wave_coefficient(n, wave_number_k) \
@@ -289,35 +278,50 @@ def phi_electric_i_te(radial, theta, phi, wave_number_k):
         last_result = result
         n += 1
         
-    return abs(result)
+    return 1j * result / radial
+
+def abs_theta_electric_i(radial, theta, phi, wave_number_k):
+    retval = theta_electric_i_tm(radial, theta, phi, wave_number_k)
+    retval += theta_electric_i_te(radial, theta, phi, wave_number_k)
+    return abs(retval)
+
+def abs_phi_electric_i(radial, theta, phi, wave_number_k):
+    retval = phi_electric_i_tm(radial, theta, phi, wave_number_k)
+    retval += phi_electric_i_te(radial, theta, phi, wave_number_k)
+    return abs(retval)
 
 def square_absolute(radial, theta, phi, wave_number_k):
-    retval = pow(radial_electric_i_tm(radial, theta, phi, wave_number_k), 2)
-    retval += pow(1/radial*theta_electric_i_tm(radial, theta, phi, wave_number_k), 2)
-    retval += pow(1/radial*phi_electric_i_tm(radial, theta, phi, wave_number_k),2)
+    retval = pow(abs(radial_electric_i_tm(radial, theta, phi, wave_number_k)), 2)
+    retval += pow(abs_theta_electric_i(radial, theta, phi, wave_number_k), 2)
+    retval += pow(abs_phi_electric_i(radial, theta, phi, wave_number_k),2)
     return retval
 
 START = EPSILON
 STOP = 10/WAVE_NUMBER
 NUM = 1000
 
-def do_some_plotting(function, *args, start=START, stop=STOP, num=NUM):
+def normalize_list(lst):
+    maxlst = max(lst)
+    for i in range(0,len(lst)):
+        lst[i] /= maxlst
+
+def do_some_plotting(function, *args, start=START, stop=STOP, num=NUM, normalize=True):
         t = np.linspace(start, stop, num=num)
         s=[]
         for j in t:
             s.append(function(j, *args))
-        maxs = max(s)
-        for i in range(0,len(s)):
-            s[i] /= maxs
+        if normalize:
+            normalize_list(s)
         plt.plot(t, s)
 
 
 def bessel_0(argument, scale):
     return pow(special.j0(scale * argument), 2)
 
-do_some_plotting(square_absolute, np.pi/2, 0, WAVE_NUMBER)
-do_some_plotting(bessel_0, WAVE_NUMBER * np.sin(AXICON))
-plt.show()
+for MAX_IT in range(2,30):
+    do_some_plotting(square_absolute, np.pi/2, 0, WAVE_NUMBER)
+    do_some_plotting(bessel_0, WAVE_NUMBER)
+    plt.show()
 
 # do_some_plotting(radial_electric_i_tm, np.pi/2, 0, WAVE_NUMBER)
 
