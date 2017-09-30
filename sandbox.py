@@ -65,6 +65,9 @@ class CartesianField(Field):
     def abs(self, x_value, y_value, z_value):
         return np.linalg.norm(
             self.evaluate(x=x_value, y=y_value, z=z_value))
+             
+def protect_zero_division(value, epsilon=EPSILON):
+    pass
 
 def _riccati_bessel_j(degree, argument):
     """ Riccati-Bessel function of first kind and derivative
@@ -106,7 +109,7 @@ def _d2_riccati_bessel_j(degree, argument):
     return values_2 \
            - (degree + 1) * degree \
              * values[0] / denominator2 \
-           - 2 * (degree + 1) * values[1] / argument
+           - 2 * (degree + 1) * values[1] / denominator1
 
 def legendre_p(degree, order, argument):
     """ Associated Legendre function of integer order
@@ -306,13 +309,20 @@ def square_absolute(radial, theta, phi, wave_number_k):
     return retval
 
 START = EPSILON
-STOP = 10/WAVE_NUMBER
+STOP = 10/(WAVE_NUMBER*np.sin(AXICON))
 NUM = 1000
 
 def normalize_list(lst):
-    maxlst = max(lst)
-    for i in range(0,len(lst)):
-        lst[i] /= maxlst
+    try:
+        maxlst = max(lst)
+        is_parent = False
+    except ValueError:
+        is_parent = True
+        for sublist in lst:
+            normalize_list(sublist)
+    if not is_parent:
+        for i in range(0,len(lst)):
+            lst[i] /= maxlst
 
 def do_some_plotting(function, *args, start=START, stop=STOP, num=NUM, normalize=False):
         t = np.linspace(start, stop, num=num)
@@ -326,10 +336,12 @@ def do_some_plotting(function, *args, start=START, stop=STOP, num=NUM, normalize
 
 def bessel_0(argument, scale):
     return pow(special.j0(scale * argument), 2)
-MAX_IT = 20
+
+MAX_IT = 500
 #for MAX_IT in range(2,20):
+do_some_plotting(bessel_0, WAVE_NUMBER*np.sin(AXICON))
 do_some_plotting(square_absolute, -np.pi/2, 0, WAVE_NUMBER)
-do_some_plotting(bessel_0, WAVE_NUMBER)
+
 plt.show()
 
 # do_some_plotting(radial_electric_i_tm, np.pi/2, 0, WAVE_NUMBER)
