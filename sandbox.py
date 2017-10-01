@@ -90,8 +90,6 @@ def d_riccati_bessel_j(degree, argument):
 
 def d2_riccati_bessel_j(degree, argument):
     """ d2 Psi """
-    if not isinstance(degree, int):
-        print(degree)
     return 1 / protected_denominator(argument) \
             * (degree + pow(degree, 2) - pow(argument, 2)) \
             * special.spherical_jn(degree, argument)
@@ -136,13 +134,18 @@ def beam_shape_g(degree, order, axicon=AXICON, mode='TM'):
     """ Computes BSC in terms of degree and order
     """
     if mode == 'TM':
-        return beam_shape_g_exa(degree, axicon=axicon) / 2
+        if order in [-1, 1]:
+            return beam_shape_g_exa(degree, axicon=axicon) / 2
+        else:
+            return 0
     if mode == 'TE':
         retval = 1j * beam_shape_g_exa(degree, axicon=axicon) / 2
-        if order > 0:
+        if order == 1:
             return retval
-        else:
+        elif order == -1:
             return -retval
+        else:
+            return 0
 
 def plane_wave_coefficient(degree, wave_number_k):
     """ Computes plane wave coefficient c_{n}^{pw}
@@ -150,6 +153,35 @@ def plane_wave_coefficient(degree, wave_number_k):
     return (1 / (1j * wave_number_k)) \
             * pow(-1j, degree) \
             * (2 * degree + 1) / (degree * (degree + 1))
+
+def _radial_electric_i_tm(radial, theta, phi, wave_number_k):
+    n = 1
+    m = 1
+    result = 0
+    increment = EPSILON
+    while n <= MAX_IT and abs(increment) >= EPSILON:
+        increment = pow(-1j, (n+1)) \
+                    * (2 * n + 1) * beam_shape_g(n, 0, mode='TM') \
+                    * special.spherical_jn(n, wave_number_k * radial) \
+                    / protected_denominator(wave_number_k * radial) \
+                    * legendre_p(n, 0, np.cos(theta))
+        result += increment
+    
+    increment = EPSILON
+    while m <= MAX_IT and increment >= EPSILON:
+        n = m
+        while n <= MAX_IT and abs(increment) >= EPSILON:
+            increment = pow(-1j, (n+1)) \
+                        * (2 * n + 1) \
+                        * special.spherical_jn(wave_number_k * radial) \
+                        / protected_denominator(wave_number_k * radial) \
+                        * legendre_p(n, abs(m), np.cos(theta)) \
+                        * (beam_shape_g(n, m, mode='TM') \
+                           * np.exp(1j * m * phi) \
+                           + beam_shape_g(n, -m, mode='TM') \
+                           * np.exp(1j * -m * phi))
+            result += increment
+    return result
 
 def radial_electric_i_tm(radial, theta, phi, wave_number_k):
     """ Computes the radial component of inciding electric field in TM mode.
@@ -269,8 +301,8 @@ def abs_phi_electric_i(radial, theta, phi, wave_number_k):
 
 def square_absolute(radial, theta, phi, wave_number_k):
     retval = pow(abs(radial_electric_i_tm(radial, theta, phi, wave_number_k)), 2)
-    retval += pow(abs_theta_electric_i(radial, theta, phi, wave_number_k), 2)
-    retval += pow(abs_phi_electric_i(radial, theta, phi, wave_number_k),2)
+    #retval += pow(abs(theta_electric_i_tm(radial, theta, phi, wave_number_k)), 2)
+    #retval += pow(abs(phi_electric_i_tm(radial, theta, phi, wave_number_k)),2)
     return retval
 
 START = EPSILON
@@ -295,6 +327,7 @@ def do_some_plotting(function, *args, start=START, stop=STOP, num=NUM, normalize
         s=[]
         for j in t:
             s.append(function(j, *args))
+        print('DONE')
         if normalize:
             normalize_list(s)
         maxs = max(s)
