@@ -301,14 +301,14 @@ def abs_phi_electric_i(radial, theta, phi, wave_number_k):
 
 def square_absolute(radial, theta, phi, wave_number_k):
     retval = pow(abs(radial_electric_i_tm(radial, theta, phi, wave_number_k)), 2)
-    #retval += pow(abs(theta_electric_i_tm(radial, theta, phi, wave_number_k)), 2)
-    #retval += pow(abs(phi_electric_i_tm(radial, theta, phi, wave_number_k)),2)
+    retval += pow(abs(theta_electric_i_tm(radial, theta, phi, wave_number_k)), 2)
+    retval += pow(abs(phi_electric_i_tm(radial, theta, phi, wave_number_k)),2)
     return retval
 
 START = EPSILON
-#STOP = 10/(WAVE_NUMBER * np.sin(AXICON))
-STOP = 10/(WAVE_NUMBER) # (to see the peak)
-NUM = 500
+STOP = 10/(WAVE_NUMBER * np.sin(AXICON))
+#STOP = 10/(WAVE_NUMBER) # (to see the peak)
+NUM = 100
 
 def normalize_list(lst):
     try:
@@ -334,6 +334,24 @@ def do_some_plotting(function, *args, start=START, stop=STOP, num=NUM, normalize
         print('PEAK = ', maxs, ' at ', t[s.index(maxs)])
         plt.plot(t, s)
 
+def radial_electric_tm_increment(max_it,
+                                 radial,
+                                 theta=np.pi/2,
+                                 phi=0,
+                                 wave_number_k=WAVE_NUMBER):
+    result = 0
+    riccati_bessel_list = _riccati_bessel_j(max_it, wave_number_k * radial)
+    riccati_bessel = riccati_bessel_list[0]
+    for n in range(1, max_it):
+        for m in [-1, 1]:
+            increment = plane_wave_coefficient(n, wave_number_k) \
+                      * beam_shape_g(n, m, mode='TM') \
+                      * (d2_riccati_bessel_j(n, wave_number_k * radial) \
+                         + riccati_bessel[n]) \
+                      * legendre_p(n, abs(m), np.cos(theta)) \
+                      * np.exp(1j * m * phi)
+            result += increment
+    return abs(result)
 
 def bessel_0(argument, scale):
     return pow(special.j0(scale * argument), 2)
@@ -348,8 +366,22 @@ print('MAX_IT = ', MAX_IT)
 #for MAX_IT in range(2,20):
 do_some_plotting(bessel_0, WAVE_NUMBER*np.sin(AXICON))
 do_some_plotting(square_absolute, -np.pi/2, 0, WAVE_NUMBER)
+plt.show()
+
+def plot_increment(x):
+    rng = range(1, 1000)
+    s = []
+    for n in rng:
+        s.append(radial_electric_tm_increment(n, x))
+    plt.plot(rng, s)
+
+"""
+plot_increment(3.93658110144e-07)
+plot_increment(3.93658110144e-06)
+plot_increment(3.93658110144e-05)
 
 plt.show()
+"""
 
 # do_some_plotting(radial_electric_i_tm, np.pi/2, 0, WAVE_NUMBER)
 
