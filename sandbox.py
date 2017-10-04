@@ -8,6 +8,8 @@ Author: Luiz Felipe Machado Votto
 """
 
 from abc import ABC, abstractmethod
+from decimal import Decimal
+
 from scipy import misc
 from scipy import special
 import numpy as np
@@ -15,10 +17,10 @@ import matplotlib.pyplot as plt
 
 
 EPSILON = 0
-AXICON = np.pi / 180  # 1 degree
-# 0.349066  # 20 degrees
+AXICON = np.longdouble(np.pi / 180)  # 1 degree
+# np.longdouble(0.349066)  # 20 degrees
 MAX_IT = 200
-WAVELENGTH = 1064E-9
+WAVELENGTH = np.longdouble(1064.0E-9)
 WAVE_NUMBER = 2 * np.pi / WAVELENGTH
 
 
@@ -66,7 +68,7 @@ class CartesianField(Field):
         return np.linalg.norm(
             self.evaluate(x=x_value, y=y_value, z=z_value))
              
-def protected_denominator(value, epsilon=1E-100):
+def protected_denominator(value, epsilon=np.longdouble(1E-25)):
     if value == 0:
         return epsilon
     else:
@@ -141,9 +143,9 @@ def beam_shape_g(degree, order, axicon=AXICON, mode='TM'):
     if mode == 'TE':
         retval = 1j * beam_shape_g_exa(degree, axicon=axicon) / 2
         if order == 1:
-            return retval
-        elif order == -1:
             return -retval
+        elif order == -1:
+            return retval
         else:
             return 0
 
@@ -298,17 +300,21 @@ def abs_phi_electric_i(radial, theta, phi, wave_number_k):
     retval = phi_electric_i_tm(radial, theta, phi, wave_number_k)
     retval += phi_electric_i_te(radial, theta, phi, wave_number_k)
     return abs(retval)
-
+import math
 def square_absolute(radial, theta, phi, wave_number_k):
     retval = pow(abs(radial_electric_i_tm(radial, theta, phi, wave_number_k)), 2)
-    retval += pow(abs(theta_electric_i_tm(radial, theta, phi, wave_number_k)), 2)
-    retval += pow(abs(phi_electric_i_tm(radial, theta, phi, wave_number_k)),2)
+    retval += pow(abs_theta_electric_i(radial, theta, phi, wave_number_k), 2)
+    retval += pow(abs_phi_electric_i(radial, theta, phi, wave_number_k),2)
+    if math.isnan(retval):
+        print(retval)
     return retval
 
-START = EPSILON
+
 STOP = 10/(WAVE_NUMBER * np.sin(AXICON))
 #STOP = 10/(WAVE_NUMBER) # (to see the peak)
-NUM = 100
+START = 1e-11
+#START = -STOP
+NUM = 500
 
 def normalize_list(lst):
     try:
@@ -322,12 +328,12 @@ def normalize_list(lst):
         for i in range(0,len(lst)):
             lst[i] /= maxlst
 
-def do_some_plotting(function, *args, start=START, stop=STOP, num=NUM, normalize=False):
+def do_some_plotting(function, *args, start=START, stop=STOP / 1E-6, num=NUM, normalize=False):
         t = np.linspace(start, stop, num=num)
         s=[]
         for j in t:
-            s.append(function(j, *args))
-        print('DONE')
+            s.append(function(j * 1E-6, *args))
+        print('DONE:', function.__name__)
         if normalize:
             normalize_list(s)
         maxs = max(s)
@@ -358,32 +364,72 @@ def bessel_0(argument, scale):
 
 def get_max_it(x_max, wave_number_k=WAVE_NUMBER):
     """ Calculates stop iteration number """
-    return np.ceil(wave_number_k * x_max + 4.05 \
-                   * pow(wave_number_k * x_max, 1/3)) + 2
-    
+    return int(np.ceil(wave_number_k * x_max + np.longdouble(4.05) \
+                   * pow(wave_number_k * x_max, 1/3)) + 2)
+
+def difference_x(radial):
+    return square_absolute(radial, np.pi/2, 0, WAVE_NUMBER) \
+           - bessel_0(radial, WAVE_NUMBER * np.sin(AXICON))
+
 MAX_IT = get_max_it(STOP)
 print('MAX_IT = ', MAX_IT)
 #for MAX_IT in range(2,20):
 do_some_plotting(bessel_0, WAVE_NUMBER*np.sin(AXICON))
-do_some_plotting(square_absolute, -np.pi/2, 0, WAVE_NUMBER)
+do_some_plotting(square_absolute, np.pi/2, 0, WAVE_NUMBER)
+plt.show()
+
+do_some_plotting(difference_x)
 plt.show()
 
 def plot_increment(x):
-    rng = range(1, 1000)
+    rng = range(1, get_max_it(x))
     s = []
     for n in rng:
         s.append(radial_electric_tm_increment(n, x))
-    plt.plot(rng, s)
+    for n in range(rng[-1],1000):
+        s.append(s[-1])
+    plt.plot(range(0,1000), s)
 
 """
-plot_increment(3.93658110144e-07)
-plot_increment(3.93658110144e-06)
-plot_increment(3.93658110144e-05)
+plot_increment(np.longdouble(3.93658110144e-07))
+plot_increment(np.longdouble(3.93658110144e-06))
+plot_increment(2 * np.longdouble(3.93658110144e-06))
+plot_increment(4 * np.longdouble(3.93658110144e-06))
+plot_increment(np.longdouble(np.longdouble(3.93658110144e-05)))
+"""
+"""
+rng = np.linspace(0, STOP, 10000)
+s1 = []
+for x in rng:
+    s1.append(_riccati_bessel_j(4, WAVE_NUMBER * x)[0])
+plt.plot(rng, s1)
+plt.show()
 
+for n in range(1, 10):
+    s1 = []
+    for x in rng:
+        s1.append(_riccati_bessel_j(10, WAVE_NUMBER * x)[1][n])
+    plt.plot(rng, s1)
+    plt.show()
+
+    s1 = []
+for x in rng:
+    s1.append(_riccati_bessel_j(300, WAVE_NUMBER * x)[1][1]/x)
+plt.plot(rng, s1)
 plt.show()
 """
+print('|E_R|(1E-9)', abs(radial_electric_i_tm(1E-9, np.pi/2, 0, WAVE_NUMBER)))
+print('|E_R|(1E-11)', abs(radial_electric_i_tm(1E-11, np.pi/2, 0, WAVE_NUMBER)))
+print('|E_THETA|(1E-9)', abs_theta_electric_i(1E-9, np.pi/2, 0, WAVE_NUMBER))
+print('|E_THETA|(1E-11)', abs_theta_electric_i(1E-11, np.pi/2, 0, WAVE_NUMBER))
+print('|E_PHI|(1E-9)', abs_phi_electric_i(1E-9, np.pi/2, 0, WAVE_NUMBER))
+print('|E_PHI|(1E-11)', abs_theta_electric_i(1E-11, np.pi/2, 0, WAVE_NUMBER))
 
+PEAK = 3.73296483757e-07
+print('|E_R|(PEAK)', abs(radial_electric_i_tm(3.73296483757e-07, np.pi/2, 0, WAVE_NUMBER)))
+print('|E_THETA|(PEAK)', abs_theta_electric_i(3.73296483757e-07, np.pi/2, 0, WAVE_NUMBER))
+print('|E_PHI|(PEAK)', abs_theta_electric_i(3.73296483757e-07, np.pi/2, 0, WAVE_NUMBER))
 # do_some_plotting(radial_electric_i_tm, np.pi/2, 0, WAVE_NUMBER)
 
-        
+
     
