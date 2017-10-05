@@ -92,7 +92,7 @@ def d_riccati_bessel_j(degree, argument):
 
 def d2_riccati_bessel_j(degree, argument):
     """ d2 Psi """
-    return 1 / protected_denominator(argument) \
+    return 1 / (argument) \
             * (degree + pow(degree, 2) - pow(argument, 2)) \
             * special.spherical_jn(degree, argument)
             
@@ -114,13 +114,13 @@ def legendre_tau(degree, order, argument):
     """
     return (degree * argument * legendre_p(degree, order, argument) \
             - (degree + order) * legendre_p(degree - 1, order, argument)) \
-            / protected_denominator(np.sqrt(1 - argument * argument))
+            / (np.sqrt(1 - argument * argument))
 
 def legendre_pi(degree, order, argument):
     """ Generalized associated Legendre function pi
     """
     return legendre_p(degree, order, argument) \
-           / protected_denominator(np.sqrt(1 - argument * argument))
+           / (np.sqrt(1 - argument * argument))
 
 def beam_shape_g_exa(degree, axicon=AXICON, bessel=True):
     """ Computes exact BSC from equations referenced by the article
@@ -165,7 +165,7 @@ def _radial_electric_i_tm(radial, theta, phi, wave_number_k):
         increment = pow(-1j, (n+1)) \
                     * (2 * n + 1) * beam_shape_g(n, 0, mode='TM') \
                     * special.spherical_jn(n, wave_number_k * radial) \
-                    / protected_denominator(wave_number_k * radial) \
+                    / (wave_number_k * radial) \
                     * legendre_p(n, 0, np.cos(theta))
         result += increment
     
@@ -176,7 +176,7 @@ def _radial_electric_i_tm(radial, theta, phi, wave_number_k):
             increment = pow(-1j, (n+1)) \
                         * (2 * n + 1) \
                         * special.spherical_jn(wave_number_k * radial) \
-                        / protected_denominator(wave_number_k * radial) \
+                        / (wave_number_k * radial) \
                         * legendre_p(n, abs(m), np.cos(theta)) \
                         * (beam_shape_g(n, m, mode='TM') \
                            * np.exp(1j * m * phi) \
@@ -216,7 +216,7 @@ def theta_electric_i_tm(radial, theta, phi, wave_number_k):
     riccati_bessel_list = _riccati_bessel_j(MAX_IT, wave_number_k * radial)
     d_riccati_bessel = riccati_bessel_list[1]
 
-    while n < MAX_IT and abs(increment) > EPSILON:
+    while n <= MAX_IT and abs(increment) >= EPSILON:
         for m in [-1, 1]:
             increment = plane_wave_coefficient(n, wave_number_k) \
                       * beam_shape_g(n, m, mode='TM') \
@@ -224,9 +224,9 @@ def theta_electric_i_tm(radial, theta, phi, wave_number_k):
                       * legendre_tau(n, abs(m), np.cos(theta)) \
                       * np.exp(1j * m * phi)
             result += increment
+        #print(np.cos(theta), theta)
         n += 1
-        
-    return result / protected_denominator(radial)
+    return result / (radial)
 
 def theta_electric_i_te(radial, theta, phi, wave_number_k):
     result = 0
@@ -236,7 +236,7 @@ def theta_electric_i_te(radial, theta, phi, wave_number_k):
     riccati_bessel_list = _riccati_bessel_j(MAX_IT, wave_number_k * radial)
     riccati_bessel = riccati_bessel_list[0]
 
-    while n < MAX_IT and abs(increment) > EPSILON:
+    while n <= MAX_IT and abs(increment) >= EPSILON:
         for m in [-1, 1]:
             increment = m \
                       * plane_wave_coefficient(n, wave_number_k) \
@@ -245,9 +245,11 @@ def theta_electric_i_te(radial, theta, phi, wave_number_k):
                       * legendre_pi(n, abs(m), np.cos(theta)) \
                       * np.exp(1j * m * phi)
             result += increment
+            #if abs(result) > 1e-7:
+                #print('Undesirable', result,'at', radial, 'n = ', n)
         n += 1
         
-    return result / protected_denominator(radial)
+    return result / (radial)
 
 def phi_electric_i_tm(radial, theta, phi, wave_number_k):
     result = 0
@@ -257,18 +259,18 @@ def phi_electric_i_tm(radial, theta, phi, wave_number_k):
     riccati_bessel_list = _riccati_bessel_j(MAX_IT, wave_number_k * radial)
     d_riccati_bessel = riccati_bessel_list[1]
 
-    while n < MAX_IT and abs(increment) > EPSILON:
+    while n < MAX_IT and abs(increment) >= EPSILON:
         for m in [-1, 1]:
             increment = m \
                       * plane_wave_coefficient(n, wave_number_k) \
                       * beam_shape_g(n, m, mode='TM') \
                       * d_riccati_bessel[n] \
-                      * legendre_pi(n, abs(m), np.cos(theta)) \
+                      * legendre_pi(n, abs(m), 0) \
                       * np.exp(1j * m * phi)
             result += increment
         n += 1
         
-    return 1j * result / protected_denominator(radial)
+    return 1j * result / (radial)
 
 def phi_electric_i_te(radial, theta, phi, wave_number_k):
     result = 0
@@ -279,7 +281,7 @@ def phi_electric_i_te(radial, theta, phi, wave_number_k):
     riccati_bessel_list = _riccati_bessel_j(MAX_IT, wave_number_k * radial)
     riccati_bessel = riccati_bessel_list[0]
 
-    while n < MAX_IT and abs(increment) > EPSILON:
+    while n < MAX_IT and abs(increment) >= EPSILON:
         for m in [-1, 1]:
             increment = plane_wave_coefficient(n, wave_number_k) \
                       * beam_shape_g(n, m, mode='TE') \
@@ -289,30 +291,28 @@ def phi_electric_i_te(radial, theta, phi, wave_number_k):
             result += increment
         n += 1
         
-    return 1j * result / protected_denominator(radial)
+    return 1j * result / (radial)
 
 def abs_theta_electric_i(radial, theta, phi, wave_number_k):
-    retval = theta_electric_i_tm(radial, theta, phi, wave_number_k)
-    retval += theta_electric_i_te(radial, theta, phi, wave_number_k)
+    retval = theta_electric_i_tm(radial, theta, phi, wave_number_k) \
+             + theta_electric_i_te(radial, theta, phi, wave_number_k)
     return abs(retval)
 
 def abs_phi_electric_i(radial, theta, phi, wave_number_k):
-    retval = phi_electric_i_tm(radial, theta, phi, wave_number_k)
-    retval += phi_electric_i_te(radial, theta, phi, wave_number_k)
+    retval = phi_electric_i_tm(radial, theta, phi, wave_number_k) \
+             + phi_electric_i_te(radial, theta, phi, wave_number_k)
     return abs(retval)
 import math
 def square_absolute(radial, theta, phi, wave_number_k):
     retval = pow(abs(radial_electric_i_tm(radial, theta, phi, wave_number_k)), 2)
     retval += pow(abs_theta_electric_i(radial, theta, phi, wave_number_k), 2)
-    retval += pow(abs_phi_electric_i(radial, theta, phi, wave_number_k),2)
-    if math.isnan(retval):
-        print(retval)
+    retval += pow(abs_phi_electric_i(radial, theta, phi, wave_number_k), 2)
     return retval
 
 
 STOP = 10/(WAVE_NUMBER * np.sin(AXICON))
 #STOP = 10/(WAVE_NUMBER) # (to see the peak)
-START = 1e-11
+START = 1e-6
 #START = -STOP
 NUM = 500
 
@@ -372,14 +372,13 @@ def difference_x(radial):
            - bessel_0(radial, WAVE_NUMBER * np.sin(AXICON))
 
 MAX_IT = get_max_it(STOP)
+#MAX_IT = 100
 print('MAX_IT = ', MAX_IT)
 #for MAX_IT in range(2,20):
 do_some_plotting(bessel_0, WAVE_NUMBER*np.sin(AXICON))
 do_some_plotting(square_absolute, np.pi/2, 0, WAVE_NUMBER)
 plt.show()
 
-do_some_plotting(difference_x)
-plt.show()
 
 def plot_increment(x):
     rng = range(1, get_max_it(x))
@@ -390,13 +389,13 @@ def plot_increment(x):
         s.append(s[-1])
     plt.plot(range(0,1000), s)
 
-"""
+
 plot_increment(np.longdouble(3.93658110144e-07))
 plot_increment(np.longdouble(3.93658110144e-06))
 plot_increment(2 * np.longdouble(3.93658110144e-06))
 plot_increment(4 * np.longdouble(3.93658110144e-06))
 plot_increment(np.longdouble(np.longdouble(3.93658110144e-05)))
-"""
+
 """
 rng = np.linspace(0, STOP, 10000)
 s1 = []
@@ -418,18 +417,6 @@ for x in rng:
 plt.plot(rng, s1)
 plt.show()
 """
-print('|E_R|(1E-9)', abs(radial_electric_i_tm(1E-9, np.pi/2, 0, WAVE_NUMBER)))
-print('|E_R|(1E-11)', abs(radial_electric_i_tm(1E-11, np.pi/2, 0, WAVE_NUMBER)))
-print('|E_THETA|(1E-9)', abs_theta_electric_i(1E-9, np.pi/2, 0, WAVE_NUMBER))
-print('|E_THETA|(1E-11)', abs_theta_electric_i(1E-11, np.pi/2, 0, WAVE_NUMBER))
-print('|E_PHI|(1E-9)', abs_phi_electric_i(1E-9, np.pi/2, 0, WAVE_NUMBER))
-print('|E_PHI|(1E-11)', abs_theta_electric_i(1E-11, np.pi/2, 0, WAVE_NUMBER))
-
-PEAK = 3.73296483757e-07
-print('|E_R|(PEAK)', abs(radial_electric_i_tm(3.73296483757e-07, np.pi/2, 0, WAVE_NUMBER)))
-print('|E_THETA|(PEAK)', abs_theta_electric_i(3.73296483757e-07, np.pi/2, 0, WAVE_NUMBER))
-print('|E_PHI|(PEAK)', abs_theta_electric_i(3.73296483757e-07, np.pi/2, 0, WAVE_NUMBER))
-# do_some_plotting(radial_electric_i_tm, np.pi/2, 0, WAVE_NUMBER)
 
 
     
