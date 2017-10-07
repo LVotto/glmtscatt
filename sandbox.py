@@ -7,7 +7,7 @@ modules for the application.
 Author: Luiz Felipe Machado Votto
 """
 
-from abc import ABC, abstractmethod
+
 #from decimal import Decimal
 
 from scipy import misc
@@ -28,50 +28,6 @@ START = 1e-10
 #START = -STOP
 NUM = 500
 
-
-class Field(ABC):
-    """ This is representative of a Field in tridimensional space.
-    """
-    functions = {}
-
-    def __init__(self, **kwargs):
-        self.functions = kwargs
-
-    def evaluate(self, *args, **kwargs):
-        """ Evaluates the value of the field given a point.
-        """
-        result = []
-        for key in kwargs:
-            result.append(self.functions[key](*args, **kwargs) or 0)
-        return np.array(result)
-
-    @abstractmethod
-    def abs(self, coordinate1, coordinate2, coordinate3):
-        """ Evaluates magnitude of field in a given point.
-        """
-        pass
-
-class SphericalField(Field):
-    """ Represents a tridimensional field in spherical coordinates
-    """
-    def __init__(self, r=None, theta=None, phi=None):
-        kwargs = {'r' : r, 'theta' : theta, 'phi' : phi}
-        super(SphericalField, self).__init__(**kwargs)
-
-    def abs(self, radial, theta, phi):
-        return np.abs(self.functions['r'](radial, theta, phi))
-
-
-class CartesianField(Field):
-    """ Represents a tridimensional field in cartesian coordinates
-    """
-    def __init__(self, x=None, y=None, z=None):
-        kwargs = {'x' : x, 'y' : y, 'z' : z}
-        super(CartesianField, self).__init__(**kwargs)
-
-    def abs(self, x_value, y_value, z_value):
-        return np.linalg.norm(
-            self.evaluate(x=x_value, y=y_value, z=z_value))
 
 def protected_denominator(value, epsilon=np.longdouble(1E-25)):
     """ Changes a value that's zero to a small number. """
