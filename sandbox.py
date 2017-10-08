@@ -11,6 +11,7 @@ from scipy import special
 import numpy as np
 import matplotlib.pyplot as plt
 
+from field import SphericalField, CartesianField
 from specials import (_riccati_bessel_j, d2_riccati_bessel_j,
                       legendre_p, legendre_tau, legendre_pi)
 
@@ -382,7 +383,7 @@ def do_some_plotting(function, *args, start=START, stop=STOP / 1E-6, num=NUM, no
     t = np.linspace(start, stop, num=num)
     s = []
     for j in t:
-        s.append(function(j * 1E-6, * args))
+        s.append(function(j * 1E-6, *args))
     print('DONE:', function.__name__)
     if normalize:
         normalize_list(s)
@@ -423,6 +424,9 @@ def difference_x(radial):
 
 MAX_IT = get_max_it(STOP)
 
+def zero(*args, **kwargs):
+    """ The zero constant function """
+    return 0
 
 def plot_increment(x):
     rng = range(1, get_max_it(x))
@@ -456,11 +460,72 @@ def test_h_field_vs_bessel():
     do_some_plotting(bessel_0, WAVE_NUMBER*np.sin(AXICON))
     do_some_plotting(square_absolute_magnetic_i, np.pi/2, 0, WAVE_NUMBER)
     plt.show()
+    
+def test_fields():
+    electric_i_tm = SphericalField(radial=radial_electric_i_tm,
+                                   theta=theta_electric_i_tm,
+                                   phi=phi_electric_i_tm)
+    
+    electric_i_te = SphericalField(radial=zero, theta=theta_electric_i_te,
+                                   phi=phi_electric_i_tm)
+    
+    print('TEST: ', electric_i_tm.evaluate(radial=1E-6, theta=np.pi/2, phi=0,
+                                 wave_number_k=WAVE_NUMBER))
+    print('REF: ', radial_electric_i_tm(1E-6, np.pi/2, 0, WAVE_NUMBER),
+                   theta_electric_i_tm(1E-6, np.pi/2, 0, WAVE_NUMBER),
+                   phi_electric_i_tm(1E-6, np.pi/2, 0, WAVE_NUMBER))
+    
+    print('TEST: ', electric_i_te.evaluate(radial=1E-6, theta=np.pi/2, phi=0,
+                                 wave_number_k=WAVE_NUMBER))
+    print('REF: ', 0,
+                   theta_electric_i_te(1E-6, np.pi/2, 0, WAVE_NUMBER),
+                   phi_electric_i_te(1E-6, np.pi/2, 0, WAVE_NUMBER))
+    
+    print(' ')
+    print((electric_i_te + electric_i_tm).evaluate(radial=1E-6, theta=np.pi/2, phi=0,
+                                 wave_number_k=WAVE_NUMBER)[1])
+    print(theta_electric_i_te(1E-6, np.pi/2, 0, WAVE_NUMBER) + theta_electric_i_tm(1E-6, np.pi/2, 0, WAVE_NUMBER))
 
-test_h_field_vs_bessel()
+def abs_func(func):
+    def absolute_func(*args, **kwargs):
+        return abs(func(*args, **kwargs))
+    return absolute_func
+
+def square_func(func):
+    def squared_func(*args, **kwargs):
+        return pow(func(*args, **kwargs), 2)
+    return squared_func
+
+import inspect
+def test_cartesian_fields():
+    electric_i_tm = SphericalField(radial=radial_electric_i_tm,
+                                   theta=theta_electric_i_tm,
+                                   phi=phi_electric_i_tm)
+    electric_i_te = SphericalField(radial=zero, theta=theta_electric_i_te,
+                                   phi=phi_electric_i_tm)
+    electric_i = electric_i_te + electric_i_tm
+    
+    cartesian_electric_i = CartesianField(spherical=electric_i)
+    print(cartesian_electric_i.functions['x'](1E-10, 1E-100, 1E-100, WAVE_NUMBER))
+    print(electric_i_tm.functions['radial'](1E-10, np.pi/2, 0, WAVE_NUMBER))
+    print(electric_i.functions['radial'](1E-10, np.pi/2, 0, WAVE_NUMBER))
+    print(cartesian_electric_i.abs(x=1E-10,y=1E-10,z=1E-10, wave_number_k=WAVE_NUMBER))
+    print(cartesian_electric_i.evaluate(x=1E-10,y=1E-100,z=1E-10, wave_number_k=WAVE_NUMBER))
+    do_some_plotting(square_absolute_electric_i, np.pi/2, 0, WAVE_NUMBER)
+    t = np.linspace(START, STOP / 1E-6, num=NUM)
+    s = []
+    for j in t:
+        s.append(pow(cartesian_electric_i.abs(x=j * 1E-6,y=1E-100,z=1E-100, wave_number_k=WAVE_NUMBER), 2))
+    plt.plot(t, s)
+    plt.show()
+
+def test_meshgrid():
+    pass
+
+#test_h_field_vs_bessel()
 #test_e_field_vs_bessel()
 #test_radial_convergence()
-
+test_cartesian_fields()
 
 """
 plot_increment(10/(WAVE_NUMBER * np.sin(AXICON)))
