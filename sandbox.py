@@ -7,6 +7,7 @@ modules for the application.
 Author: Luiz Felipe Machado Votto
 """
 
+import time
 from scipy import special
 import numpy as np
 import matplotlib.pyplot as plt
@@ -14,7 +15,6 @@ import matplotlib.pyplot as plt
 from field import SphericalField, CartesianField
 from specials import (_riccati_bessel_j, d2_riccati_bessel_j,
                       legendre_p, legendre_tau, legendre_pi)
-
 
 EPSILON = 0
 AXICON = np.longdouble(np.pi / 180)  # 1 degree
@@ -422,8 +422,6 @@ def difference_x(radial):
     return square_absolute_electric_i(radial, np.pi/2, 0, WAVE_NUMBER) \
            - bessel_0(radial, WAVE_NUMBER * np.sin(AXICON))
 
-MAX_IT = get_max_it(STOP)
-
 def zero(*args, **kwargs):
     """ The zero constant function """
     return 0
@@ -496,7 +494,6 @@ def square_func(func):
         return pow(func(*args, **kwargs), 2)
     return squared_func
 
-import inspect
 def test_cartesian_fields():
     electric_i_tm = SphericalField(radial=radial_electric_i_tm,
                                    theta=theta_electric_i_tm,
@@ -506,26 +503,64 @@ def test_cartesian_fields():
     electric_i = electric_i_te + electric_i_tm
     
     cartesian_electric_i = CartesianField(spherical=electric_i)
+    """
     print(cartesian_electric_i.functions['x'](1E-10, 1E-100, 1E-100, WAVE_NUMBER))
     print(electric_i_tm.functions['radial'](1E-10, np.pi/2, 0, WAVE_NUMBER))
     print(electric_i.functions['radial'](1E-10, np.pi/2, 0, WAVE_NUMBER))
     print(cartesian_electric_i.abs(x=1E-10,y=1E-10,z=1E-10, wave_number_k=WAVE_NUMBER))
     print(cartesian_electric_i.evaluate(x=1E-10,y=1E-100,z=1E-10, wave_number_k=WAVE_NUMBER))
+    """
+    start_time = time.time()
     do_some_plotting(square_absolute_electric_i, np.pi/2, 0, WAVE_NUMBER)
+    print("::: SPHERICAL :::")
+    print("--- %s seconds ---" % (time.time() - start_time))
+    start_time = time.time()
     t = np.linspace(START, STOP / 1E-6, num=NUM)
     s = []
     for j in t:
         s.append(pow(cartesian_electric_i.abs(x=j * 1E-6,y=1E-100,z=1E-100, wave_number_k=WAVE_NUMBER), 2))
     plt.plot(t, s)
+    print("::: CARTESIAN :::")
+    print("--- %s seconds ---" % (time.time() - start_time))
     plt.show()
 
 def test_meshgrid():
     pass
 
+def test_plot_2d_bessel():     
+    fig, axs = plt.subplots()
+    electric_i_tm = SphericalField(radial=radial_electric_i_tm,
+                                   theta=theta_electric_i_tm,
+                                   phi=phi_electric_i_tm)
+    electric_i_te = SphericalField(radial=zero, theta=theta_electric_i_te,
+                                   phi=phi_electric_i_tm)
+    electric_i = electric_i_te + electric_i_tm
+    
+    cartesian_electric_i = CartesianField(spherical=electric_i)
+    
+    x = np.linspace(-STOP/1E-6, STOP/1E-6, 100)
+    X, Y = np.meshgrid(x, x)
+
+    start_time = time.time()
+    zdata = np.vectorize(cartesian_electric_i.abs)(x=1E-6*X, y=1E-6*Y, z=0, wave_number_k=WAVE_NUMBER)
+    print("--- %s seconds ---" % (time.time() - start_time))
+    
+    levels = np.linspace(0, 1, 40)
+    
+    cs = axs.contourf(X, Y, zdata, levels=levels)
+    fig.colorbar(cs, ax=axs, format="%.2f")
+    
+    plt.show()
+
+
+MAX_IT = get_max_it(STOP)
+
 #test_h_field_vs_bessel()
 #test_e_field_vs_bessel()
 #test_radial_convergence()
-test_cartesian_fields()
+#test_cartesian_fields()
+
+test_plot_2d_bessel()
 
 """
 plot_increment(10/(WAVE_NUMBER * np.sin(AXICON)))
@@ -551,3 +586,7 @@ plt.plot(rng, s1)
 plt.show()
 """
 
+import winsound
+Freq = 2500 # Set Frequency To 2500 Hertz
+Dur = 1000 # Set Duration To 1000 ms == 1 second
+winsound.Beep(Freq,Dur)
