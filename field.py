@@ -50,7 +50,11 @@ class Field(ABC):
 
     def abs(self, *args, **kwargs):
         """ Computes absolute value of field """
-        return np.linalg.norm(self.evaluate(*args, **kwargs))
+        return np.linalg.norm(abs(self.evaluate(*args, **kwargs)))
+        """result = 0
+        for comp in self.evaluate(*args, **kwargs):
+            result += abs(comp)
+        return np.sqrt(result)"""
 
 class SphericalField(Field):
     """ Represents a tridimensional field in spherical coordinates
@@ -136,9 +140,9 @@ class CartesianField(Field):
     """
     def __init__(self, x=None, y=None, z=None, spherical=None):
         if isinstance(spherical, SphericalField):
-            x, y, z = spherical_to_cartesian(spherical.functions['radial'],
-                                             spherical.functions['theta'],
-                                             spherical.functions['phi'])
+            x, y, z = (spherical_in_cartesian(spherical.functions['radial']),
+                      spherical_in_cartesian(spherical.functions['theta']),
+                      spherical_in_cartesian(spherical.functions['phi']))
         kwargs = {'x' : x, 'y' : y, 'z' : z}
         super(CartesianField, self).__init__(**kwargs)
         
