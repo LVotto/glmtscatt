@@ -12,11 +12,15 @@ import numpy as np
 def memoize(function):
     CACHE = {}
     def memoized_function(*args):
-        if (args) in CACHE:
+        if args in CACHE:
             return CACHE[(args)]
         else:
             return function(*args)
     return memoized_function
+
+def squared_bessel_0(argument, scale):
+    """ Squared value for order 0 regular Bessel function """
+    return pow(special.j0(scale * argument), 2)
 
 def _riccati_bessel_j(degree, argument):
     """ Riccati-Bessel function of first kind and derivative
@@ -35,6 +39,8 @@ def d_riccati_bessel_j(degree, argument):
 
 def d2_riccati_bessel_j(degree, argument):
     """ d2 Psi """
+    if argument == 0:
+        argument = 1E-16
     return 1 / (argument) \
             * (degree + pow(degree, 2) - pow(argument, 2)) \
             * special.spherical_jn(degree, argument)
@@ -56,6 +62,8 @@ def legendre_tau(degree, order, argument):
     """
     if argument == 1:
         argument = 1 - 1E-16
+    if argument == -1:
+        argument = -1 + 1E-16
     return (degree * argument * legendre_p(degree, order, argument) \
             - (degree + order) * legendre_p(degree - 1, order, argument)) \
             / (np.sqrt(1 - argument * argument))
@@ -65,5 +73,7 @@ def legendre_pi(degree, order, argument):
     """
     if argument == 1:
         argument = 1 - 1E-16
+    if argument == -1:
+        argument = -1 + 1E-16
     return legendre_p(degree, order, argument) \
            / (np.sqrt(1 - argument * argument))

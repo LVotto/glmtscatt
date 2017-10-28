@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Created on Fri Oct 13 15:12:20 2017
+Specific Frozen Wave parameters
 
-@author: luiz_
+@author: Luiz Felipe Machado Votto
 """
 
 import numpy as np
