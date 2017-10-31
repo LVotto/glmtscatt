@@ -67,9 +67,9 @@ def spherical_in_cartesian(spherical_function):
         of cartesian coordinates
     """
     def cartesian_function(x, y, z, *args, **kwargs):
-        return spherical_function(cartesian_radial(x, y, z),
-                                  cartesian_theta(x, y, z),
-                                  cartesian_phi(x, y),
+        return spherical_function(radial=cartesian_radial(x, y, z),
+                                  theta=cartesian_theta(x, y, z),
+                                  phi=cartesian_phi(x, y),
                                   *args, **kwargs)
     return cartesian_function
 
@@ -78,7 +78,6 @@ def cartesian_radial(x, y, z):
 
 def cartesian_theta(x, y, z):
     rho = np.sqrt(x * x + y * y)
-
     return np.arctan2(rho, z)
 
 def cartesian_phi(x, y):
@@ -101,7 +100,7 @@ def spherical_to_cartesian(function_r,
                * np.cos(cartesian_theta(x, y, z)) \
                * np.cos(cartesian_phi(x, y)) \
                + func_phi(x, y, z, *args, **kwargs) \
-               * (-np.sin(cartesian_theta(x, y, z)))
+               * (-np.sin(cartesian_phi(x, y)))
 
     def function_y(x, y, z, *args, **kwargs):
         return func_r(x, y, z, *args, **kwargs) \
@@ -111,7 +110,7 @@ def spherical_to_cartesian(function_r,
                * np.cos(cartesian_theta(x, y, z)) \
                * np.sin(cartesian_phi(x, y)) \
                + func_phi(x, y, z, *args, **kwargs) \
-               * np.cos(cartesian_theta(x, y, z))
+               * np.cos(cartesian_phi(x, y))
 
     def function_z(x, y, z, *args, **kwargs):
         return func_r(x, y, z, *args, **kwargs) \
@@ -130,6 +129,8 @@ class CartesianField(Field):
             x, y, z = spherical_to_cartesian(spherical.functions['radial'],
                                              spherical.functions['theta'],
                                              spherical.functions['phi'])
+
+        
         kwargs = {'x' : x, 'y' : y, 'z' : z}
         super(CartesianField, self).__init__(**kwargs)
 

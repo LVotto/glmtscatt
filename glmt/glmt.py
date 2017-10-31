@@ -24,6 +24,7 @@ path = './pickle'
 PATH = "../mtx/gnm"
 GTE = {}
 GTM = {}
+MAX_IT = 600
 
 def beam_shape_g_exa(degree, axicon=AXICON, bessel=True):
     """ Computes exact BSC from equations referenced by the article
@@ -35,7 +36,7 @@ def beam_shape_g_exa(degree, axicon=AXICON, bessel=True):
                + legendre_pi(degree, 1, np.cos(axicon)))
 
 
-def _beam_shape_g(degree, order, axicon=AXICON, mode='TM'):
+def beam_shape_g(degree, order, axicon=AXICON, mode='TM'):
     """ Computes BSC in terms of degree and order
     """
     if mode == 'TM':
@@ -55,7 +56,7 @@ def _beam_shape_g(degree, order, axicon=AXICON, mode='TM'):
 
     raise ValueError('Beam shape coefficients only work either for TM or TE modes.')
 
-def __beam_shape_g(degree, order, mode='TM', max_it=15):
+def _beam_shape_g(degree, order, mode='TM', max_it=15):
     """ Calculates BSCs of a specific frozen wave """
     if order not in [-1, 1]:
         return 0
@@ -112,7 +113,7 @@ def __beam_shape_g(degree, order, mode='TM', max_it=15):
 
     raise ValueError('Beam shape coefficients only work either for TM or TE modes.')
 
-def beam_shape_g(degree, order, mode='TM', max_it=15):
+def __beam_shape_g(degree, order, mode='TM', max_it=15):
     """ Get BSCs from .mtx file stored in the mtx directory. """
     global GTE
     global GTM
@@ -130,21 +131,22 @@ def beam_shape_g(degree, order, mode='TM', max_it=15):
 
     with open(str(pathlib.Path('../pickles/gfw_g_%s.pickle' % mode).absolute()), 'rb') as f:
         table = pickle.load(f)
-        if mode == 'TM':
+        if mode == 'TM' and table:
             GTM = table
-        if mode == 'TE':
+        if mode == 'TE' and table:
             GTE = table
 
     try:
         return table[degree, order]
     except KeyError:
         with open(str(pathlib.Path(PATH + mode + '.mtx').absolute()), 'rb') as g:
+            print("LOADING MATRIX: ", mode, "m = ", order, "n = ", degree)
             matrix = mmread(g)
-            for row in matrix:
-                table[row[0], row[1]] = row[2] + 1j * row[3]
-            with open(str(pathlib.Path('../pickles/gfw_g_%s.pickle' % mode).absolute()), 'wb') as f:
-                pickle.dump(table, f)
-            return table[degree, order]
+        for row in matrix:
+            table[row[0], row[1]] = row[2] + 1j * row[3]
+        with open(str(pathlib.Path('../pickles/gfw_g_%s.pickle' % mode).absolute()), 'wb') as f:
+            pickle.dump(table, f)
+        return table[degree, order]
 
 def plane_wave_coefficient(degree, wave_number_k):
     """ Computes plane wave coefficient c_{n}^{pw}
@@ -164,7 +166,7 @@ def radial_electric_i_tm(radial, theta, phi, wave_number_k):
                                             wave_number_k * radial)
     riccati_bessel = riccati_bessel_list[0]
 
-    while n < get_max_it(radial):
+    while n <= get_max_it(radial):
         for m in [-1, 1]:
             increment = plane_wave_coefficient(n, wave_number_k) \
                       * beam_shape_g(n, m, mode='TM') \
@@ -188,7 +190,7 @@ def theta_electric_i_tm(radial, theta, phi, wave_number_k):
                                             wave_number_k * radial)
     d_riccati_bessel = riccati_bessel_list[1]
 
-    while n < get_max_it(radial):
+    while n <= get_max_it(radial):
         for m in [-1, 1]:
             increment = plane_wave_coefficient(n, wave_number_k) \
                       * beam_shape_g(n, m, mode='TM') \
@@ -211,7 +213,7 @@ def theta_electric_i_te(radial, theta, phi, wave_number_k):
                                             wave_number_k * radial)
     riccati_bessel = riccati_bessel_list[0]
 
-    while n < get_max_it(radial):
+    while n <= get_max_it(radial):
         for m in [-1, 1]:
             increment = m \
                       * plane_wave_coefficient(n, wave_number_k) \
@@ -235,7 +237,7 @@ def phi_electric_i_tm(radial, theta, phi, wave_number_k):
                                             wave_number_k * radial)
     d_riccati_bessel = riccati_bessel_list[1]
 
-    while n < get_max_it(radial):
+    while n <= get_max_it(radial):
         for m in [-1, 1]:
             increment = m \
                       * plane_wave_coefficient(n, wave_number_k) \
@@ -260,7 +262,7 @@ def phi_electric_i_te(radial, theta, phi, wave_number_k):
                                             wave_number_k * radial)
     riccati_bessel = riccati_bessel_list[0]
 
-    while n < get_max_it(radial):
+    while n <= get_max_it(radial):
         for m in [-1, 1]:
             increment = plane_wave_coefficient(n, wave_number_k) \
                       * beam_shape_g(n, m, mode='TE') \
@@ -303,7 +305,7 @@ def theta_magnetic_i_tm(radial, theta, phi, wave_number_k):
                                             wave_number_k * radial)
     riccati_bessel = riccati_bessel_list[0]
 
-    while n < get_max_it(radial):
+    while n <= get_max_it(radial):
         for m in [-1, 1]:
             increment = m \
                       * plane_wave_coefficient(n, wave_number_k) \
@@ -327,7 +329,7 @@ def phi_magnetic_i_tm(radial, theta, phi, wave_number_k):
                                             wave_number_k * radial)
     riccati_bessel = riccati_bessel_list[0]
 
-    while n < get_max_it(radial):
+    while n <= get_max_it(radial):
         for m in [-1, 1]:
             increment = plane_wave_coefficient(n, wave_number_k) \
                       * beam_shape_g(n, m, mode='TM') \
@@ -350,7 +352,7 @@ def radial_magnetic_i_te(radial, theta, phi, wave_number_k):
                                             wave_number_k * radial)
     riccati_bessel = riccati_bessel_list[0]
 
-    while n < get_max_it(radial):
+    while n <= get_max_it(radial):
         for m in [-1, 1]:
             increment = plane_wave_coefficient(n, wave_number_k) \
                       * beam_shape_g(n, m, mode='TE') \
@@ -374,7 +376,7 @@ def theta_magnetic_i_te(radial, theta, phi, wave_number_k):
                                             wave_number_k * radial)
     d_riccati_bessel = riccati_bessel_list[1]
 
-    while n < get_max_it(radial):
+    while n <= get_max_it(radial):
         for m in [-1, 1]:
             increment = plane_wave_coefficient(n, wave_number_k) \
                       * beam_shape_g(n, m, mode='TE') \
@@ -397,7 +399,7 @@ def phi_magnetic_i_te(radial, theta, phi, wave_number_k):
                                             wave_number_k * radial)
     d_riccati_bessel = riccati_bessel_list[1]
 
-    while n < get_max_it(radial):
+    while n <= get_max_it(radial):
         for m in [-1, 1]:
             increment = m \
                       * plane_wave_coefficient(n, wave_number_k) \

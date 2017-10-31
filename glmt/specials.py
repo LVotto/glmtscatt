@@ -77,3 +77,4 @@ def legendre_pi(degree, order, argument):
         argument = -1 + 1E-16
     return legendre_p(degree, order, argument) \
            / (np.sqrt(1 - argument * argument))
+
