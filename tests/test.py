@@ -165,12 +165,12 @@ def test_cartesian_fields():
 
     start_time = time.time()
     t = np.linspace(-200, 200, num=NUM/4)
-    glmt.MAX_IT = get_max_it(200E-6)
     sx = []
     sy = []
     sz = []
     try:
         with open(str(pathlib.Path('../pickles/frozen_cartesian_control.pickle').absolute()), 'rb') as f:
+            raise FileNotFoundError
             print('Loading results: ')
             sx, sy, sz = pickle.load(f)
             plt.plot(t, sx, 'tomato', label='eixo-x')
@@ -184,7 +184,7 @@ def test_cartesian_fields():
                 j = 1E-16
             sx.append(pow(abs(cartesian_electric_i.abs(x=j * 1E-6, y=0, z=0, wave_number_k=WAVE_NUMBER)),2))
             print("j = ", j, " -> ", get_max_it(abs(j) * 1E-6), ": ", sx[-1])
-        plt.plot(t, sx, 'tomato', label='ex')
+        plt.plot(t, sx, 'tomato', label='eixo-x')
         print("::: X :::")
         print("--- %s seconds ---" % (time.time() - start_time))
 
@@ -194,7 +194,7 @@ def test_cartesian_fields():
                 j = 1E-16
             sy.append(pow(abs(cartesian_electric_i.abs(x=0, y=j * 1E-6, z=0, wave_number_k=WAVE_NUMBER)),2))
             print("j = ", j, " -> ", get_max_it(abs(j) * 1E-6), ": ", sy[-1])
-        plt.plot(t, sy, 'navy', label='ey')
+        plt.plot(t, sy, 'navy', label='eixo-y')
         print("::: Y :::")
         print("--- %s seconds ---" % (time.time() - start_time))
 
@@ -205,7 +205,7 @@ def test_cartesian_fields():
                 j = 1E-16
             sz.append(pow(abs(cartesian_electric_i.abs(x=0, y=0, z=j * 1E-6, wave_number_k=WAVE_NUMBER)),2))
             print("j = ", j, " -> ", get_max_it(abs(j) * 1E-6), ": ", sz[-1])
-        plt.plot(t, sz, 'firebrick', label='ez')
+        plt.plot(t, sz, 'firebrick', label='eixo-z')
         print(sz)
         print("::: Z :::")
         print("--- %s seconds ---" % (time.time() - start_time))
@@ -309,7 +309,6 @@ def test_plot_2d_bessel():
     plt.show()
 
 def test_plot_2d():
-    print("I am Bessel Beam X COMPONENT at xy-plane.")
     electric_i_tm = SphericalField(radial=glmt.radial_electric_i_tm,
                                    theta=glmt.theta_electric_i_tm,
                                    phi=glmt.phi_electric_i_tm)
@@ -417,9 +416,8 @@ def test_frozen_bsc():
     t = range(1, 500)
     s = []
     for i in t:
-        start_time = time.time()
-        glmt.beam_shape_g(i, 1, mode='TM')
-        s.append(time.time() - start_time)
+        g = glmt.beam_shape_g(i, 1, mode='TM')
+        s.append(g)
     plt.plot(t, s)
     plt.show()
 
@@ -483,25 +481,25 @@ def test_cartesian_components():
     cartesian_electric_i = CartesianField(spherical=electric_i)
 
     start_time = time.time()
-    t = np.linspace(-200, 200, num=NUM/4)
+    t = np.linspace(0, 100, num=NUM/4)
     sx = []
     sy = []
     sz = []
     try:
-        with open(str(pathlib.Path('../pickles/frozen_compAA.pickle').absolute()), 'rb') as f:
+        with open(str(pathlib.Path('../pickles/frozen_compZZ.pickle').absolute()), 'rb') as f:
+            raise FileNotFoundError
             print('Loading results: ')
             sx, sy, sz = pickle.load(f)
-            #plt.plot(t, sx, 'tomato', label='ex')
+            plt.plot(t, sx, 'tomato', label='ex')
             plt.plot(t, sy, 'navy', label='ey', linestyle='--')
             plt.plot(t, sz, 'firebrick', label='ez')
     except FileNotFoundError:
         print('There are no saved results. Calculating...')
-
         start_time = time.time()
         for j in t:
             if j == 0:
                 j = 1E-16
-            sx.append(pow(abs(cartesian_electric_i.functions['x'](x=0, y=0, z=j * 1E-6, wave_number_k=WAVE_NUMBER)),2))
+            sx.append(pow(abs(cartesian_electric_i.functions['x'](x=j * 1E-6, y=0, z=0, wave_number_k=WAVE_NUMBER)),2))
             print("j = ", j, " -> ", get_max_it(abs(j) * 1E-6), ": ", sx[-1])
         plt.plot(t, sx, 'tomato', label='hx')
         print("::: X :::")
@@ -511,22 +509,21 @@ def test_cartesian_components():
         for j in t:
             if j == 0:
                 j = 1E-16
-            sy.append(pow(abs(cartesian_electric_i.functions['y'](x=0, y=0, z=j * 1E-6, wave_number_k=WAVE_NUMBER)),2))
+            sy.append(pow(abs(cartesian_electric_i.functions['y'](x=j * 1E-6, y=0, z=0, wave_number_k=WAVE_NUMBER)),2))
             print("j = ", j, " -> ", get_max_it(abs(j) * 1E-6), ": ", sy[-1])
         plt.plot(t, sy, 'navy', label='hy')
         print("::: Y :::")
         print("--- %s seconds ---" % (time.time() - start_time))
-
         start_time = time.time()
         for j in t:
             if j == 0:
                 j = 1E-16
-            sz.append(pow(abs(cartesian_electric_i.functions['z'](x=0, y=0, z=j * 1E-6, wave_number_k=WAVE_NUMBER)),2))
+            sz.append(pow(abs(cartesian_electric_i.functions['z'](x=j * 1E-6, y=0, z=0, wave_number_k=WAVE_NUMBER)),2))
             print("j = ", j, " -> ", get_max_it(abs(j) * 1E-6), ": ", sz[-1])
-        plt.plot(t, sz, 'firebrick', label='hz')
+        plt.plot(t, sz, 'firebrick', label='Ez')
         print("::: Z :::")
         print("--- %s seconds ---" % (time.time() - start_time))
-        with open(str(pathlib.Path('../pickles/frozen_compAA.pickle').absolute()), 'wb') as f:
+        with open(str(pathlib.Path('../pickles/frozen_compZZ.pickle').absolute()), 'wb') as f:
             pickle.dump((sx, sy, sz), f)
 
     plt.ylabel('|E|² [V²/m²]')
@@ -629,7 +626,7 @@ MAX_IT = get_max_it(STOP)
 #test_frozen_wave()
 #test_plot_2d_bessel()
 #test_plot_3d_frozen()
-test_plot_2d()
+#test_plot_2d()
 #test_cartesian_components()
 #test_cartesian_fields()
 #test_fields()

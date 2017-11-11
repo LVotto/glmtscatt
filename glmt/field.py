@@ -26,6 +26,9 @@ class Field(ABC):
     @abstractmethod
     def __add__(self, other):
         pass
+    
+    def __call__(self, *args, **kwargs):
+        return self.evaluate(*args, **kwargs)
 
     def evaluate(self, *args, **kwargs):
         """ Evaluates the value of the field given a point.

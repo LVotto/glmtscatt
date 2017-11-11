@@ -31,6 +31,10 @@ def zero(*args, **kwargs):
     """ The zero constant function """
     return 0
 
+def one(*args, **kwargs):
+    """ The function that is constant in 1 """
+    return 1
+
 def normalize_list(lst):
     try:
         maxlst = max(lst)

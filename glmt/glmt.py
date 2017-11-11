@@ -36,7 +36,7 @@ def beam_shape_g_exa(degree, axicon=AXICON, bessel=True):
                + legendre_pi(degree, 1, np.cos(axicon)))
 
 
-def beam_shape_g(degree, order, axicon=AXICON, mode='TM'):
+def _beam_shape_g(degree, order, axicon=AXICON, mode='TM'):
     """ Computes BSC in terms of degree and order
     """
     if mode == 'TM':
@@ -56,7 +56,7 @@ def beam_shape_g(degree, order, axicon=AXICON, mode='TM'):
 
     raise ValueError('Beam shape coefficients only work either for TM or TE modes.')
 
-def _beam_shape_g(degree, order, mode='TM', max_it=15):
+def beam_shape_g(degree, order, mode='TM', max_it=15):
     """ Calculates BSCs of a specific frozen wave """
     if order not in [-1, 1]:
         return 0
@@ -83,7 +83,6 @@ def _beam_shape_g(degree, order, mode='TM', max_it=15):
     with open(str(pathlib.Path('../pickles/fw_g_%s.pickle' % mode).absolute()), 'rb') as f:
         table = pickle.load(f)
 
-    result = 0
     try:
         if mode == 'TM':
             GTM = table
@@ -91,27 +90,24 @@ def _beam_shape_g(degree, order, mode='TM', max_it=15):
             GTE = table
         return table[degree, order]
     except KeyError:
-        if mode == 'TM':
-            for q in range(-max_it, max_it):
+        result = 0
+        for q in range(-max_it, max_it):
                 increment = COEFF[q] \
                             * special.j0(axicon_omega(degree, np.deg2rad(THETA[q])))
                 result += increment
+        if mode == 'TM':
             table[degree, order] = 1 / 2 * result
             with open(str(pathlib.Path('../pickles/fw_g_%s.pickle' % mode).absolute()), 'wb') as f:
                 pickle.dump(table, f)
             return table[degree, order]
 
         if mode == 'TE':
-            for q in range(-max_it, max_it):
-                increment = COEFF[q] \
-                            * special.j0(axicon_omega(degree, np.deg2rad(THETA[q])))
-                result += increment
             table[degree, order] = -np.sign(order) * 1j / 2 * result
             with open(str(pathlib.Path('../pickles/fw_g_%s.pickle' % mode).absolute()), 'wb') as f:
                 pickle.dump(table, f)
             return table[degree, order]
 
-    raise ValueError('Beam shape coefficients only work either for TM or TE modes.')
+    raise ValueError('This program understands only \'TM\' or \'TE\' modes, not %s.' % mode)
 
 def __beam_shape_g(degree, order, mode='TM', max_it=15):
     """ Get BSCs from .mtx file stored in the mtx directory. """
