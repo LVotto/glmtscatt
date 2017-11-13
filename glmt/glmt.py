@@ -25,18 +25,32 @@ PATH = "../mtx/gnm"
 GTE = {}
 GTM = {}
 MAX_IT = 600
+SHAPE = 'fw'
+
+
+def beam_shape_g(degree, order, axicon=AXICON, mode='TM', max_it=15, shape=SHAPE):
+    if shape == 'bessel':
+        return beam_shape_bessel(degree, order, axicon=axicon, mode=mode)
+
+    if shape == 'fw':
+        return beam_shape_fw(degree, order, mode=mode, max_it=max_it)
+
+    if shape == 'mtx':
+        return beam_shape_mtx(degree, order, mode=mode)
+
+    raise ValueError('Shape \"%s\" is not supported' % shape)
 
 def beam_shape_g_exa(degree, axicon=AXICON, bessel=True):
     """ Computes exact BSC from equations referenced by the article
     """
     if bessel:
         return special.j0((degree + 1/2) * np.sin(axicon))
+
     return (1 + np.cos(axicon)) / (2 * degree * (degree + 1)) \
             * (legendre_tau(degree, 1, np.cos(axicon)) \
                + legendre_pi(degree, 1, np.cos(axicon)))
 
-
-def _beam_shape_g(degree, order, axicon=AXICON, mode='TM'):
+def beam_shape_bessel(degree, order, axicon=AXICON, mode='TM'):
     """ Computes BSC in terms of degree and order
     """
     if mode == 'TM':
@@ -56,7 +70,44 @@ def _beam_shape_g(degree, order, axicon=AXICON, mode='TM'):
 
     raise ValueError('Beam shape coefficients only work either for TM or TE modes.')
 
-def beam_shape_g(degree, order, mode='TM', max_it=15):
+def beam_shape_fw(degree, order, mode='TM', max_it=15):
+    """ Calculates BSCs given a frozen wave's parameters """
+
+    if order not in [-1, 1]:
+        return 0
+
+    global GTE
+    global GTM
+
+    try:
+        if mode == 'TM' and GTM:
+            return GTM[degree, order]
+
+        if mode == 'TE' and GTE:
+            return GTE[degree, order]
+
+    except KeyError:
+        # We need to add the new coefficient to a cache.
+        result = 0
+        for q in range[-max_it, max_it]:
+            increment = COEFF[q] \
+                        * special.j0(axicon_omega(degree, THETA[q]))
+            result += increment
+        if mode == 'TM':
+            GTM[degree, order] = result / 2
+            GTM[degree, -order] = GTM[degree, order]
+            return GTM[degree, order]
+
+        if mode == 'TE':
+            GTE[degree, order] = -np.sign(order) \
+                                 * 1j / 2 \
+                                 * result
+            GTE[degree, -order] = -GTE[degree, order]
+            return GTE[degree, order]
+
+        raise ValueError('Mode \"%s\" is not supported.' % mode)
+
+def _beam_shape_fw(degree, order, mode='TM', max_it=15):
     """ Calculates BSCs of a specific frozen wave """
     if order not in [-1, 1]:
         return 0
@@ -85,10 +136,13 @@ def beam_shape_g(degree, order, mode='TM', max_it=15):
 
     try:
         if mode == 'TM':
-            GTM = table
+            for key in table:
+                GTM[key] = table[key]
         if mode == 'TE':
-            GTE = table
+            for key in table:
+                GTE[key] = table[key]
         return table[degree, order]
+
     except KeyError:
         result = 0
         for q in range(-max_it, max_it):
@@ -97,19 +151,15 @@ def beam_shape_g(degree, order, mode='TM', max_it=15):
                 result += increment
         if mode == 'TM':
             table[degree, order] = 1 / 2 * result
-            with open(str(pathlib.Path('../pickles/fw_g_%s.pickle' % mode).absolute()), 'wb') as f:
-                pickle.dump(table, f)
-            return table[degree, order]
-
         if mode == 'TE':
             table[degree, order] = -np.sign(order) * 1j / 2 * result
-            with open(str(pathlib.Path('../pickles/fw_g_%s.pickle' % mode).absolute()), 'wb') as f:
-                pickle.dump(table, f)
-            return table[degree, order]
+        with open(str(pathlib.Path('../pickles/fw_g_%s.pickle' % mode).absolute()), 'wb') as f:
+            pickle.dump(table, f)
+        return table[degree, order]
 
     raise ValueError('This program understands only \'TM\' or \'TE\' modes, not %s.' % mode)
 
-def __beam_shape_g(degree, order, mode='TM', max_it=15):
+def beam_shape_mtx(degree, order, mode='TM'):
     """ Get BSCs from .mtx file stored in the mtx directory. """
     global GTE
     global GTM

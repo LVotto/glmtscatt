@@ -106,4 +106,4 @@ COEFF = {-15: -2.37169E-17,
          15: -2.37169E-17}
 
 def axicon_omega(degree, axicon):
-    return np.sin(axicon) * (degree + 1/2)
+    return np.sin(deg2rad(axicon)) * (degree + 1/2)

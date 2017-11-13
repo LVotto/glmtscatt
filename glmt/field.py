@@ -6,6 +6,7 @@ Module for representing fields in spherical and cartesian coordinates.
 """
 
 from abc import ABC, abstractmethod
+from glmt.utils import zero
 import numpy as np
 
 def function_sum(function_1, function_2):
@@ -26,7 +27,7 @@ class Field(ABC):
     @abstractmethod
     def __add__(self, other):
         pass
-    
+
     def __call__(self, *args, **kwargs):
         return self.evaluate(*args, **kwargs)
 
@@ -50,6 +51,12 @@ class SphericalField(Field):
     """ Represents a tridimensional field in spherical coordinates
     """
     def __init__(self, radial=None, theta=None, phi=None):
+        if not radial:
+            radial = zero
+        if not theta:
+            theta = zero
+        if not phi:
+            phi = zero
         kwargs = {'radial' : radial, 'theta' : theta, 'phi' : phi}
         super(SphericalField, self).__init__(**kwargs)
 
@@ -133,7 +140,13 @@ class CartesianField(Field):
                                              spherical.functions['theta'],
                                              spherical.functions['phi'])
 
-        
+        else:
+            if not x:
+                x = zero
+            if not y:
+                y = zero
+            if not z:
+                z = zero
         kwargs = {'x' : x, 'y' : y, 'z' : z}
         super(CartesianField, self).__init__(**kwargs)
 

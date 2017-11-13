@@ -27,7 +27,7 @@ STOP = 100E-6
 START = -STOP
 NUM = 500
 
-def declare_spherical_electric_field():   
+def declare_spherical_electric_field():
     electric_i_tm = SphericalField(radial=glmt.radial_electric_i_tm,
                                    theta=glmt.theta_electric_i_tm,
                                    phi=glmt.phi_electric_i_tm)
@@ -48,7 +48,7 @@ def declare_cartesian_magnetic_field():
     magnetic_i = magnetic_i_te + magnetic_i_tm
 
     return CartesianField(spherical=magnetic_i)
-    
+
 
 def do_some_plotting(function, *args, start=START, stop=STOP / 1E-6,
                      num=NUM, normalize=False):
@@ -216,7 +216,7 @@ def test_cartesian_fields():
     plt.xlabel('r [micrômetros]')
     plt.legend(loc=1)
     plt.show()
-    
+
 def test_cartesian_z():
     electric_i_tm = SphericalField(radial=glmt.radial_electric_i_tm,
                                    theta=glmt.theta_electric_i_tm,
@@ -325,18 +325,18 @@ def test_plot_2d():
     start_time = time.time()
     try:
         print('Searching for results')
-        with open(str(pathlib.Path('../pickles/frozenlast.pickle').absolute()), 'rb') as f:
+        with open(str(pathlib.Path('../pickles/frozenlast2.pickle').absolute()), 'rb') as f:
             xzdata = pickle.load(f)
             print('Results where found!')
     except FileNotFoundError:
         print('Results not found. Calculating...')
         xzdata = abs(np.vectorize(cartesian_electric_i.abs)(x=1E-6*X, y=0, z=1E-6*Y, wave_number_k=WAVE_NUMBER))
         print("--- %s seconds ---" % (time.time() - start_time))
-        with open(str(pathlib.Path('../pickles/frozenlast.pickle').absolute()), 'wb') as f:
+        with open(str(pathlib.Path('../pickles/frozenlast2.pickle').absolute()), 'wb') as f:
             pickle.dump(xzdata, f)
 
     fig, ax = plt.subplots(1, 1)
-    levels = np.linspace(0, 1, 40)
+    levels = np.linspace(0, 0.02, 40)
     cs1 = ax.contourf(X, Y, 6*pow(xzdata, 2), levels=levels, cmap=cm.hot)
     ax.set_aspect('equal', 'box')
     fig.colorbar(cs1, format="%.2f")
@@ -412,12 +412,12 @@ def test_frozen_wave():
     print("--- %s seconds ---" % (time.time() - start_time))
     plt.show()
 
-def test_frozen_bsc():
+def test_frozen_bsc(mode='TM'):
     t = range(1, 500)
     s = []
     for i in t:
-        g = glmt.beam_shape_g(i, 1, mode='TM')
-        s.append(g)
+        g = glmt.beam_shape_g(i, 1, mode=mode)
+        s.append(abs(g))
     plt.plot(t, s)
     plt.show()
 
@@ -542,16 +542,16 @@ def test_pickles():
             a = random.choice(range(0, 10000))
             print('CREATED: ', a)
             pickle.dump(a, f)
-            
+
 def test_some_axes():
     f = declare_cartesian_electric_field()
-    
+
     assert abs(f.functions['x'](x=0, y=1E-6, z=0, wave_number_k=WAVE_NUMBER) \
                - f.functions['x'](x=1E-6, y=0, z=0, wave_number_k=WAVE_NUMBER)) < 1E-6
     assert abs(f.functions['x'](x=0, y=1E-6, z=0, wave_number_k=WAVE_NUMBER) \
                - f.functions['x'](x=np.sqrt(2)/2 * 1E-6, y=np.sqrt(2)/2 * 1E-6, z=0, wave_number_k=WAVE_NUMBER)) < 1E-6
-            
-               
+
+
 def test_magnetic_components():
     cartesian_magnetic_i = declare_cartesian_magnetic_field()
 
@@ -600,13 +600,13 @@ def test_magnetic_components():
     plt.xlabel('x [micrômetros]')
     plt.legend(loc=1)
     plt.show()
-    
+
 def test_circle_bessel():
     f = declare_spherical_electric_field()
-    
+
     t = np.linspace(0, 2*np.pi, 100)
     s = []
-    
+
     for j in t:
         s.append(abs(f.functions['phi'](radial=1E-6, theta=np.pi/2, phi=j, wave_number_k=WAVE_NUMBER))**2 \
                      +abs(f.functions['radial'](radial=1E-6, theta=np.pi/2, phi=j, wave_number_k=WAVE_NUMBER))**2)
@@ -614,7 +614,7 @@ def test_circle_bessel():
     plt.plot(t, s)
     plt.show
 
-    
+
 MAX_IT = get_max_it(STOP)
 
 #test_pickles()
