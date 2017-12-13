@@ -45,6 +45,10 @@ def d2_riccati_bessel_j(degree, argument):
             * (degree + pow(degree, 2) - pow(argument, 2)) \
             * special.spherical_jn(degree, argument)
 
+def radial_riccati_bessel(degree, argument, riccati_list):
+    """ Riccati-Bessel part of radial component """
+    return d2_riccati_bessel_j(degree, argument) + riccati_list[degree]
+
 def legendre_p(degree, order, argument):
     """ Associated Legendre function of integer order
     """

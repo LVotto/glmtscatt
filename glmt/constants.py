@@ -12,4 +12,7 @@ EPSILON = 0
 AXICON = np.longdouble(np.pi / 180)  # 1 degree
 # np.longdouble(0.349066)  # 20 degrees
 WAVELENGTH = np.longdouble(1064.0E-9)
-WAVE_NUMBER = 2 * np.pi / WAVELENGTH
+#WAVE_NUMBER = 2 * np.pi / WAVELENGTH
+REFFRACTIVE_INDEX = 1.33
+
+WAVE_NUMBER = 2 * np.pi / WAVELENGTH * REFFRACTIVE_INDEX
