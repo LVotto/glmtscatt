@@ -27,4 +27,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Acknowledgments
 I would like to thank:
 * **My family** - For being awesome. :)
-* ... more people to come.
+* **Ronaldo Maia** - For the support and comprehension. - [romaia](https://github.com/romaia)
