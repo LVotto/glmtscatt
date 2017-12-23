@@ -6,12 +6,21 @@ the code for varied purposes.
 @author: Luiz Felipe Machado Votto
 """
 
+import matplotlib.pyplot as plt
+import pathlib
+import pickle
 import time
 import winsound
 import numpy as np
 
 from glmt.constants import WAVE_NUMBER
 
+
+def open_file(path='../pickles/', file_name='', formatting='.pickle', operation='rb'):
+    """ Return a file with specific format either for
+      reading (operation='rb') or writing (operation='wb')
+    """
+    return  open(str(pathlib.Path(path + file_name + formatting).absolute()), operation)
 
 def protected_denominator(value, epsilon=np.longdouble(1E-25)):
     """ Changes a value that's zero to a small number. """
@@ -55,4 +64,27 @@ def success_tone():
     time.sleep(0.02)
     winsound.Beep(880, 100)
     time.sleep(0.02)
-    winsound.Beep(1320, 1000)
+    winsound.Beep(1320, 1000)    
+
+class Pickler():
+    path = None
+    data = None
+    
+    def __init__(self, path=None, file_name=None, data=None):
+        if file_name:
+            self.path = '../pickles/' + file_name        
+        if path:
+            self.path = path
+        if data:
+            self.data = data
+            self.store()
+            
+    def read(self):
+        if not self.data:
+            with open(str(pathlib.Path(self.path).absolute()), 'rb') as f:
+                self.data = pickle.load(f)
+        return self.data
+    
+    def store(self):
+        with open(str(pathlib.Path(self.path).absolute()), 'wb') as f:
+            pickle.dump(self.data, f)            

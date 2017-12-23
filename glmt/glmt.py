@@ -182,7 +182,7 @@ def beam_shape_mtx(degree, order, mode='TM'):
     try:
         return table[degree, order]
     except KeyError:
-        with open(str(pathlib.Path(PATH + mode + '3.mtx').absolute()), 'rb') as g:
+        with open(str(pathlib.Path(PATH + mode + '5.mtx').absolute()), 'rb') as g:
             print("LOADING MATRIX: ", mode, "m = ", order, "n = ", degree)
             matrix = mmread(g)
         for row in matrix:
@@ -229,13 +229,13 @@ def theta_electric_i_tm(radial, theta, phi, wave_number_k):
     """
     result = 0
     n = 1
-
+    # Due to possible singularity near origin, we approximate null radial
+    # component to a small value.
+    radial = radial or 1E-16
 
     riccati_bessel_list = _riccati_bessel_j(get_max_it(radial),
                                             wave_number_k * radial)
     d_riccati_bessel = riccati_bessel_list[1]
-
-    # while n <= get_max_it(radial):
     max_it = get_max_it(radial)
     while n <= max_it:
         for m in DEGREES:
@@ -245,22 +245,21 @@ def theta_electric_i_tm(radial, theta, phi, wave_number_k):
                       * legendre_tau(n, abs(m), np.cos(theta)) \
                       * np.exp(1j * m * phi)
             result += increment
-        #print(np.cos(theta), theta)
         n += 1
-    return result / (radial)
+    return result / radial
 
 def theta_electric_i_te(radial, theta, phi, wave_number_k):
     """ Computes the theta component of inciding electric field in TE mode.
     """
     result = 0
     n = 1
-
+    # Due to possible singularity near origin, we approximate null radial
+    # component to a small value.
+    radial = radial or 1E-16
 
     riccati_bessel_list = _riccati_bessel_j(get_max_it(radial),
                                             wave_number_k * radial)
     riccati_bessel = riccati_bessel_list[0]
-
-    # while n <= get_max_it(radial):
     max_it = get_max_it(radial)
     while n <= max_it:
         for m in DEGREES:
@@ -273,20 +272,21 @@ def theta_electric_i_te(radial, theta, phi, wave_number_k):
             result += increment
         n += 1
 
-    return result / (radial)
+    return result / radial
 
 def phi_electric_i_tm(radial, theta, phi, wave_number_k):
     """ Computes the phi component of inciding electric field in TM mode.
     """
     result = 0
     n = 1
-
+    # Due to possible singularity near origin, we approximate null radial
+    # component to a small value.
+    radial = radial or 1E-16
 
     riccati_bessel_list = _riccati_bessel_j(get_max_it(radial),
                                             wave_number_k * radial)
     d_riccati_bessel = riccati_bessel_list[1]
 
-    # while n <= get_max_it(radial):
     max_it = get_max_it(radial)
     while n <= max_it:
         for m in DEGREES:
@@ -299,7 +299,7 @@ def phi_electric_i_tm(radial, theta, phi, wave_number_k):
             result += increment
         n += 1
 
-    return 1j * result / (radial)
+    return 1j * result / radial
 
 def phi_electric_i_te(radial, theta, phi, wave_number_k):
     """ Computes the phi component of inciding electric field in TE mode.
@@ -307,13 +307,14 @@ def phi_electric_i_te(radial, theta, phi, wave_number_k):
     result = 0
     n = 1
     m = 0
-
-
+    # Due to possible singularity near origin, we approximate null radial
+    # component to a small value.
+    radial = radial or 1E-16
+    
     riccati_bessel_list = _riccati_bessel_j(get_max_it(radial),
                                             wave_number_k * radial)
     riccati_bessel = riccati_bessel_list[0]
 
-    # while n <= get_max_it(radial):
     max_it = get_max_it(radial)
     while n <= max_it:
         for m in DEGREES:
@@ -325,7 +326,7 @@ def phi_electric_i_te(radial, theta, phi, wave_number_k):
             result += increment
         n += 1
 
-    return 1j * result / (radial)
+    return 1j * result / radial
 
 def abs_theta_electric_i(radial, theta, phi, wave_number_k):
     """ Calculates absolute value of inciding theta component """
@@ -352,13 +353,14 @@ def theta_magnetic_i_tm(radial, theta, phi, wave_number_k):
     """
     result = 0
     n = 1
-
+    # Due to possible singularity near origin, we approximate null radial
+    # component to a small value.
+    radial = radial or 1E-16
 
     riccati_bessel_list = _riccati_bessel_j(get_max_it(radial),
                                             wave_number_k * radial)
     riccati_bessel = riccati_bessel_list[0]
 
-    # while n <= get_max_it(radial):
     max_it = get_max_it(radial)
     while n <= max_it:
         for m in DEGREES:
@@ -371,20 +373,21 @@ def theta_magnetic_i_tm(radial, theta, phi, wave_number_k):
             result += increment
         n += 1
 
-    return -result / (radial)
+    return -result / radial
 
 def phi_magnetic_i_tm(radial, theta, phi, wave_number_k):
     """ Computes the phi component of inciding magnetic field in TM mode.
     """
     result = 0
     n = 1
-
+    # Due to possible singularity near origin, we approximate null radial
+    # component to a small value.
+    radial = radial or 1E-16
 
     riccati_bessel_list = _riccati_bessel_j(get_max_it(radial),
                                             wave_number_k * radial)
     riccati_bessel = riccati_bessel_list[0]
 
-    # while n <= get_max_it(radial):
     max_it = get_max_it(radial)
     while n <= max_it:
         for m in DEGREES:
@@ -396,7 +399,7 @@ def phi_magnetic_i_tm(radial, theta, phi, wave_number_k):
             result += increment
         n += 1
 
-    return -1j * result / (radial)
+    return -1j * result / radial
 
 def radial_magnetic_i_te(radial, theta, phi, wave_number_k):
     """ Computes the radial component of inciding magnetic field in TE mode.
@@ -426,13 +429,14 @@ def theta_magnetic_i_te(radial, theta, phi, wave_number_k):
     """
     result = 0
     n = 1
-
+    # Due to possible singularity near origin, we approximate null radial
+    # component to a small value.
+    radial = radial or 1E-16
 
     riccati_bessel_list = _riccati_bessel_j(get_max_it(radial),
                                             wave_number_k * radial)
     d_riccati_bessel = riccati_bessel_list[1]
 
-    # while n <= get_max_it(radial):
     max_it = get_max_it(radial)
     while n <= max_it:
         for m in DEGREES:
@@ -444,20 +448,21 @@ def theta_magnetic_i_te(radial, theta, phi, wave_number_k):
             result += increment
         n += 1
 
-    return result / (radial)
+    return result / radial
 
 def phi_magnetic_i_te(radial, theta, phi, wave_number_k):
     """ Computes the phi component of inciding magnetic field in TE mode.
     """
     result = 0
     n = 1
-
+    # Due to possible singularity near origin, we approximate null radial
+    # component to a small value.
+    radial = radial or 1E-16
 
     riccati_bessel_list = _riccati_bessel_j(get_max_it(radial),
                                             wave_number_k * radial)
     d_riccati_bessel = riccati_bessel_list[1]
 
-    # while n <= get_max_it(radial):
     max_it = get_max_it(radial)
     while n <= max_it:
         for m in DEGREES:
@@ -470,7 +475,7 @@ def phi_magnetic_i_te(radial, theta, phi, wave_number_k):
             result += increment
         n += 1
 
-    return 1j * result / (radial)
+    return 1j * result / radial
 
 def abs_theta_magnetic_i(radial, theta, phi, wave_number_k):
     """ Calculates absolute value of inciding theta component """

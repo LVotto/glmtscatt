@@ -17,7 +17,7 @@ from matplotlib.ticker import LinearLocator, FormatStrFormatter
 import glmt.glmt as glmt
 from glmt.field import SphericalField, CartesianField
 from glmt.specials import squared_bessel_0
-from glmt.utils import zero, get_max_it, normalize_list
+from glmt.utils import zero, get_max_it, normalize_list, open_file
 from glmt.constants import AXICON, WAVE_NUMBER
 
 #STOP = 10/(WAVE_NUMBER * np.sin(AXICON))  # for bessel beam
@@ -27,12 +27,12 @@ STOP = 100E-6
 START = -STOP
 NUM = 500
 
-def plot_square_abs_in_z(x, start=START, stop=STOP, num=NUM, pickle='cache'):
+def plot_square_abs_in_z(x, start=START, stop=STOP, num=NUM, pickle_file='cache'):
     e = declare_cartesian_electric_field()
     t = np.linspace(start, stop, num)
     
     try:
-        with open(str(pathlib.Path('../pickles/%s.pickle' % pickle).absolute()), 'rb') as f:
+        with open(str(pathlib.Path('../pickles/%s.pickle' % pickle_file).absolute()), 'rb') as f:
             print('Loading results: ')
             sz = pickle.load(f)
             print(sz)
@@ -43,18 +43,18 @@ def plot_square_abs_in_z(x, start=START, stop=STOP, num=NUM, pickle='cache'):
             plt.plot(len(sz), sz, 'firebrick')
     except FileNotFoundError:
         print('There are no saved results. Calculating...')
-        s = []
+        sz = []
         for j in t:
-            s.append(pow(e.abs(x=x, y=0, z=j * 1E-6,
+            sz.append(pow(e.abs(x=x, y=0, z=j * 1E-6,
                                wave_number_k=WAVE_NUMBER),
                          2)
                     )
-            print("j = ", j, " -> ", get_max_it(abs(j) * 1E-6), ": ", s[-1])
-    plt.plot(t, s)
+            print("j = ", j, " -> ", get_max_it(abs(j) * 1E-6), ": ", sz[-1])
+    plt.plot(t, sz)
     plt.xlabel('z [micrômetros]')
     plt.ylabel('|E|² [V²/m²]')
     plt.show()
-    with open(str(pathlib.Path('../pickles/%s.pickle' % pickle).absolute()), 'wb') as f:
+    with open(str(pathlib.Path('../pickles/%s.pickle' % pickle_file).absolute()), 'wb') as f:
         pickle.dump(sz, f)
     
     
@@ -383,8 +383,8 @@ def test_plot_2d():
     fig, ax = plt.subplots(1, 1)
     levels = np.linspace(0, 2, 40)
     cs1 = ax.contourf(X, Y, xzdata, levels=levels, cmap=cm.hot)
-        with open(str(pathlib.Path('../pickles/ggfw3300a.pickle').absolute()), 'wb') as f:
-            pickle.dump(xzdata, f)
+    with open(str(pathlib.Path('../pickles/ggfw3300a.pickle').absolute()), 'wb') as f:
+        pickle.dump(xzdata, f)
 
     fig, ax = plt.subplots(1, 1)
     #levels = np.linspace(0, 8, 40)
@@ -720,6 +720,47 @@ def plot_n_max(max_radial=1000, num=500):
     plt.xlabel('r [micrômetros]')
     plt.ylabel('N(r)')
     plt.show()
+    
+def plot_3d_xz(min_z=-22E-6,max_z=22E-6, min_x=-10E-6, max_x=10E-6, num=400,
+               load=True, file_name='2d_zx', cmap=cm.inferno):
+    f = declare_cartesian_electric_field()
+    
+    tz = np.linspace(min_z, max_z, num)
+    tx = np.linspace(min_x, max_x, num)
+    X, Z = np.meshgrid(tx, tz)
+    
+    fig = plt.figure()
+    ax = fig.gca(projection='3d')
+    
+    if load:
+        print('::::: Loading 2D XZ graph :::::')
+        with open_file(file_name=file_name) as f:
+            F = pickle.load(f)
+    else:
+        start_time = time.time()
+        print('::::: Plotting 2D XZ graph :::::')
+        F = np.vectorize(f.abs)(x=X, y=0, z=Z, wave_number_k=WAVE_NUMBER)
+        print("--- %s seconds ---" % (time.time() - start_time))
+        with open_file(file_name=file_name, operation='wb') as f:
+            pickle.dump(F, f)
+    
+    # Plot the surface.
+    surf = ax.plot_surface(X, Z, F * F, cmap=cmap, antialiased=True)
+    # Customize the z axis.
+    #ax.set_zlim(0, 8)
+    #ax.zaxis.set_major_locator(LinearLocator(10))
+    #ax.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
+    # Add a color bar which maps values to colors.
+    fig.colorbar(surf, shrink=0.5, aspect=15, label='|E|² [v²/m²]')
+    ax.set_xlabel('x [um]')
+    ax.set_ylabel('z [um]')
+    plt.show()    
+    
+    contourf = plt.contourf(X, Z, F * F, cmap=cmap)
+    fig.colorbar(contourf, shrink=0.5, aspect=15, label='|E|² [v²/m²]')
+    plt.show()    
+    
+    return F
 
 
 MAX_IT = get_max_it(STOP)

@@ -51,12 +51,9 @@ class SphericalField(Field):
     """ Represents a tridimensional field in spherical coordinates
     """
     def __init__(self, radial=None, theta=None, phi=None):
-        if not radial:
-            radial = zero
-        if not theta:
-            theta = zero
-        if not phi:
-            phi = zero
+        radial = radial or zero
+        theta = theta or zero
+        phi = phi or zero
         kwargs = {'radial' : radial, 'theta' : theta, 'phi' : phi}
         super(SphericalField, self).__init__(**kwargs)
 
@@ -139,14 +136,10 @@ class CartesianField(Field):
             x, y, z = spherical_to_cartesian(spherical.functions['radial'],
                                              spherical.functions['theta'],
                                              spherical.functions['phi'])
-
         else:
-            if not x:
-                x = zero
-            if not y:
-                y = zero
-            if not z:
-                z = zero
+            x = x or zero
+            y = y or zero
+            z = z or zero
         kwargs = {'x' : x, 'y' : y, 'z' : z}
         super(CartesianField, self).__init__(**kwargs)
 
