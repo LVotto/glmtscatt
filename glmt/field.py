@@ -6,7 +6,7 @@ Module for representing fields in spherical and cartesian coordinates.
 """
 
 from abc import ABC, abstractmethod
-from glmt.utils import zero
+from glmt.utils import zero, one
 import numpy as np
 
 def function_sum(function_1, function_2):
@@ -30,6 +30,19 @@ class Field(ABC):
 
     def __call__(self, *args, **kwargs):
         return self.evaluate(*args, **kwargs)
+
+    def __getitem__(self, component):
+        return self.component(component)
+
+    def component(self, component):
+        if component in self.functions:
+            kwargs = {component: self.functions[component]}
+            for key in self.functions:
+                if key != component:
+                    kwargs[key] = zero
+        else:
+            raise ValueError('Component %s not in %s' % (component, self.__class__))
+        return self.__class__(**kwargs)
 
     def evaluate(self, *args, **kwargs):
         """ Evaluates the value of the field given a point.
@@ -81,13 +94,16 @@ def spherical_in_cartesian(spherical_function):
     return cartesian_function
 
 def cartesian_radial(x, y, z):
+    """ Radial coordinate expressed in cartesian coordinates """
     return np.sqrt(x * x + y * y + z * z)
 
 def cartesian_theta(x, y, z):
+    """ Theta coordinate expressed in cartesian coordinates """
     rho = np.sqrt(x * x + y * y)
     return np.arctan2(rho, z)
 
 def cartesian_phi(x, y):
+    """ Phi coordinate expressed in cartesian coordinates """
     return np.arctan2(y, x)
 
 
@@ -155,3 +171,15 @@ class CartesianField(Field):
             result.functions[key] = function_sum(self.functions[key],
                                                  other.functions[key])
         return result
+
+
+def versor_x():
+    return CartesianField(x=one, y=zero, z=zero)
+
+
+def versor_y():
+    return CartesianField(x=zero, y=one, z=zero)
+
+
+def versor_z():
+    return CartesianField(x=zero, y=zero, z=one)
