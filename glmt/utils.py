@@ -6,6 +6,7 @@ the code for varied purposes.
 @author: Luiz Felipe Machado Votto
 """
 
+import json
 import matplotlib.pyplot as plt
 import pathlib
 import pickle
@@ -64,27 +65,52 @@ def success_tone():
     time.sleep(0.02)
     winsound.Beep(880, 100)
     time.sleep(0.02)
-    winsound.Beep(1320, 1000)    
+    winsound.Beep(1320, 1000)
+
+class JSONStoreManager(json.encoder.JSONEncoder):
+    """ A class that stores and retrieves json encoded data. """
+    path = None
+    data = None
+
+    def __init__(self, path=None, data=None, **kwargs):
+        super(JSONStoreManager, self).__init__(**kwargs)
+        self.path = path
+        self.data = data
+
+    def default(self, o):
+       try:
+           iterable = iter(o)
+       except TypeError:
+           pass
+       else:
+           return list(iterable)
+       # Let the base class default method raise the TypeError
+       return json.JSONEncoder.default(self, o)
+
+    def store(self):
+        with open(self.path, 'wb') as f:
+            return json.dump(self.encode(self.data), f)
+
 
 class Pickler():
     path = None
     data = None
-    
+
     def __init__(self, path=None, file_name=None, data=None):
         if file_name:
-            self.path = '../pickles/' + file_name        
+            self.path = '../pickles/' + file_name
         if path:
             self.path = path
         if data:
             self.data = data
             self.store()
-            
+
     def read(self):
         if not self.data:
             with open(str(pathlib.Path(self.path).absolute()), 'rb') as f:
                 self.data = pickle.load(f)
         return self.data
-    
+
     def store(self):
         with open(str(pathlib.Path(self.path).absolute()), 'wb') as f:
-            pickle.dump(self.data, f)            
+            pickle.dump(self.data, f)

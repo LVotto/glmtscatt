@@ -82,17 +82,6 @@ class SphericalField(Field):
         return result
 
 
-def spherical_in_cartesian(spherical_function):
-    """ Write a function in spherical coordinates in terms
-        of cartesian coordinates
-    """
-    def cartesian_function(x, y, z, *args, **kwargs):
-        return spherical_function(radial=cartesian_radial(x, y, z),
-                                  theta=cartesian_theta(x, y, z),
-                                  phi=cartesian_phi(x, y),
-                                  *args, **kwargs)
-    return cartesian_function
-
 def cartesian_radial(x, y, z):
     """ Radial coordinate expressed in cartesian coordinates """
     return np.sqrt(x * x + y * y + z * z)
@@ -105,6 +94,18 @@ def cartesian_theta(x, y, z):
 def cartesian_phi(x, y):
     """ Phi coordinate expressed in cartesian coordinates """
     return np.arctan2(y, x)
+
+
+def spherical_in_cartesian(spherical_function):
+    """ Write a function in spherical coordinates in terms
+        of cartesian coordinates
+    """
+    def cartesian_function(x, y, z, *args, **kwargs):
+        return spherical_function(radial=cartesian_radial(x, y, z),
+                                  theta=cartesian_theta(x, y, z),
+                                  phi=cartesian_phi(x, y),
+                                  *args, **kwargs)
+    return cartesian_function
 
 
 def spherical_to_cartesian(function_r,

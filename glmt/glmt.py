@@ -310,7 +310,7 @@ def phi_electric_i_te(radial, theta, phi, wave_number_k):
     # Due to possible singularity near origin, we approximate null radial
     # component to a small value.
     radial = radial or 1E-16
-    
+
     riccati_bessel_list = _riccati_bessel_j(get_max_it(radial),
                                             wave_number_k * radial)
     riccati_bessel = riccati_bessel_list[0]

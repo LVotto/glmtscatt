@@ -760,7 +760,70 @@ def plot_3d_xz(min_z=-22E-6,max_z=22E-6, min_x=-10E-6, max_x=10E-6, num=400,
     fig.colorbar(contourf, shrink=0.5, aspect=15, label='|E|² [v²/m²]')
     plt.show()    
     
-    return F
+    return X, Z, F
+
+def plot_component_in_z(x, start=START, stop=STOP, num=NUM,
+                        load=False, pickle_file='cache', component='x'):
+    e = declare_cartesian_electric_field()
+    t = np.linspace(start, stop, num)
+    
+    if load:
+        with open(str(pathlib.Path('../pickles/%s.pickle' % pickle_file).absolute()), 'rb') as f:
+            print('Loading results: ')
+            sz = pickle.load(f)
+            print(sz)
+            for item in sz:
+                if np.isnan(item):
+                    item = 0
+                    print(sz)
+            plt.plot(len(sz), sz, 'firebrick')
+    else:
+        print('Calculating...')
+        sz = []
+        for j in t:
+            sz.append(pow(e[component].abs(x=x, y=0, z=j * 1E-6,
+                               wave_number_k=WAVE_NUMBER),
+                         2)
+                    )
+            print("j = ", j, " -> ", get_max_it(abs(j) * 1E-6), ": ", sz[-1])
+    plt.plot(t, sz)
+    plt.xlabel('z [micrômetros]')
+    plt.ylabel('|E|² [V²/m²]')
+    plt.show()
+    with open(str(pathlib.Path('../pickles/%s.pickle' % pickle_file).absolute()), 'wb') as f:
+        pickle.dump(sz, f)
+        
+def square_abs_z(x, field=declare_cartesian_electric_field(), 
+                 start=START, stop=STOP, num=NUM, load=False,
+                 pickle_file='cache', component='x'):
+    e = field
+    t = np.linspace(start, stop, num)
+    
+    if load:
+        with open(str(pathlib.Path('../pickles/%s.pickle' % pickle_file).absolute()), 'rb') as f:
+            print('Loading results: ')
+            sz = pickle.load(f)
+            print(sz)
+            for item in sz:
+                if np.isnan(item):
+                    item = 0
+                    print(sz)
+            plt.plot(len(sz), sz, 'firebrick')
+    else:
+        print('Calculating...')
+        sz = []
+        for j in t:
+            sz.append(pow(e[component].abs(x=x, y=0, z=j * 1E-6,
+                               wave_number_k=WAVE_NUMBER),
+                         2)
+                    )
+            print("j = ", j, " -> ", get_max_it(abs(j) * 1E-6), ": ", sz[-1])
+    plt.plot(t, sz)
+    plt.xlabel('z [micrômetros]')
+    plt.ylabel('|E|² [V²/m²]')
+    plt.show()
+    with open(str(pathlib.Path('../pickles/%s.pickle' % pickle_file).absolute()), 'wb') as f:
+        pickle.dump(sz, f)
 
 
 MAX_IT = get_max_it(STOP)
