@@ -70,6 +70,7 @@ def plot_square_abs_in_x(start=START, stop=STOP, num=NUM):
                 )
     plt.plot(t, s)
     plt.show()
+    return t, s
 
 def declare_spherical_electric_field():
     electric_i_tm = SphericalField(radial=glmt.radial_electric_i_tm,

@@ -88,8 +88,30 @@ class JSONStoreManager(json.encoder.JSONEncoder):
        return json.JSONEncoder.default(self, o)
 
     def store(self):
-        with open(self.path, 'wb') as f:
+        with open(self.path, 'w') as f:
             return json.dump(self.encode(self.data), f)
+
+
+class PlotHandler(JSONStoreManager):
+    shape = None
+    labels = []
+    title = ''
+    def __init__(self, shape=None, labels=None, title=None, *args, **kwargs):
+        self.shape = shape
+        self.title = title
+        self.labels = labels
+        super(PlotHandler, self).__init__(*args, **kwargs)
+        self.data = {'shape': self.shape,
+                     'title': self.title,
+                     'labels': self.labels,
+                     'data': self.data}
+
+    def plot(self):
+        plt.plot(self.data['data'][0], self.data['data'][1])
+        plt.xlabel(self.data['labels'][0])
+        plt.ylabel(self.data['labels'][1])
+        plt.title(self.data['title'])
+        return plt.show()
 
 
 class Pickler():
