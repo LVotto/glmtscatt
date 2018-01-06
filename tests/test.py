@@ -17,7 +17,7 @@ from matplotlib.ticker import LinearLocator, FormatStrFormatter
 import glmt.glmt as glmt
 from glmt.field import SphericalField, CartesianField
 from glmt.specials import squared_bessel_0
-from glmt.utils import zero, get_max_it, normalize_list, open_file
+from glmt.utils import zero, get_max_it, normalize_list, open_file, PlotHandler
 from glmt.constants import AXICON, WAVE_NUMBER
 
 #STOP = 10/(WAVE_NUMBER * np.sin(AXICON))  # for bessel beam
@@ -825,6 +825,18 @@ def square_abs_z(x, field=declare_cartesian_electric_field(),
     plt.show()
     with open(str(pathlib.Path('../pickles/%s.pickle' % pickle_file).absolute()), 'wb') as f:
         pickle.dump(sz, f)
+        
+def plot_and_store_json():
+    t, s = plot_square_abs_in_x(start=0, stop=100, num=400)
+    plot_handler = PlotHandler(path='grafbessel.json',
+                               data=[t, s],
+                               title='Módulo ao quadrado do feixe de Bessel',
+                               labels=['x [micrômetros]', 
+                                       '|E|² [V²/m²]'],
+                               shape=1
+                              )
+    plot_handler.store()
+    return plot_handler.plot()
 
 
 MAX_IT = get_max_it(STOP)
