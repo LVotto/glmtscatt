@@ -89,7 +89,10 @@ class JSONStoreManager(json.encoder.JSONEncoder):
 
     def store(self):
         with open(self.path, 'w') as f:
-            return json.dump(self.encode(self.data), f)
+            return json.dump(self.encode(self.data),
+                             f, sort_keys=True,
+                             indent=4,
+                             separators=(',', ':'))
 
 
 class PlotHandler(JSONStoreManager):
