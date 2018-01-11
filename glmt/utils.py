@@ -11,7 +11,6 @@ import matplotlib.pyplot as plt
 import pathlib
 import pickle
 import time
-import winsound
 import numpy as np
 
 from glmt.constants import WAVE_NUMBER
@@ -58,6 +57,7 @@ def normalize_list(lst):
             lst[i] /= maxlst
 
 def success_tone():
+    import winsound
     """ Tone to call user back to the computer """
     winsound.Beep(880, 200)
     time.sleep(0.05)
