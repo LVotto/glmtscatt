@@ -25,7 +25,7 @@ PATH = "../mtx/gnm"
 GTE = {}
 GTM = {}
 MAX_IT = 600
-SHAPE = 'mtx'
+SHAPE = 'bessel'
 DEGREES = [-1, 1]
 
 

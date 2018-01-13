@@ -12,6 +12,7 @@ import pathlib
 import pickle
 import time
 import numpy as np
+import base64
 
 from glmt.constants import WAVE_NUMBER
 
@@ -84,6 +85,8 @@ class JSONStoreManager(json.encoder.JSONEncoder):
            pass
        else:
            return list(iterable)
+       if isinstance(o, np.float128):
+           return json.JSONEncoder.default(self, base64.b64encode(o))
        # Let the base class default method raise the TypeError
        return json.JSONEncoder.default(self, o)
 
