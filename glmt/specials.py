@@ -25,17 +25,17 @@ def squared_bessel_0(argument, scale):
 def _riccati_bessel_j(degree, argument):
     """ Riccati-Bessel function of first kind and derivative
     """
-    return special.riccati_jn(degree, argument)
+    return special.riccati_jn(degree, float(argument))
 
 def riccati_bessel_j(degree, argument):
     """ Riccati-Bessel function of first kind
     """
-    return special.riccati_jn(degree, argument)[0]
+    return special.riccati_jn(degree, float(argument))[0]
 
 def d_riccati_bessel_j(degree, argument):
     """ Derivative of Riccati-Bessel function of first kind
     """
-    return special.riccati_jn(degree, argument)[1]
+    return special.riccati_jn(degree, float(argument))[1]
 
 def d2_riccati_bessel_j(degree, argument):
     """ d2 Psi """
@@ -43,7 +43,7 @@ def d2_riccati_bessel_j(degree, argument):
         argument = 1E-16
     return 1 / (argument) \
             * (degree + pow(degree, 2) - pow(argument, 2)) \
-            * special.spherical_jn(degree, argument)
+            * special.spherical_jn(degree, float(argument))
 
 def radial_riccati_bessel(degree, argument, riccati_list):
     """ Riccati-Bessel part of radial component """
@@ -56,7 +56,7 @@ def legendre_p(degree, order, argument):
         return pow(-1, -order) * misc.factorial(degree + order) \
                / misc.factorial(degree - order) \
                * legendre_p(degree, -order, argument)
-    return special.lpmv(order, degree, argument)
+    return special.lpmv(order, degree, float(argument))
 
 def legendre_tau(degree, order, argument):
     """ Returns generalized Legendre function tau

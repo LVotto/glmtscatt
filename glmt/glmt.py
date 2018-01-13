@@ -25,7 +25,7 @@ PATH = "../mtx/gnm"
 GTE = {}
 GTM = {}
 MAX_IT = 600
-SHAPE = 'bessel'
+SHAPE = 'mtx'
 DEGREES = [-1, 1]
 
 
@@ -45,7 +45,7 @@ def beam_shape_g_exa(degree, axicon=AXICON, bessel=True):
     """ Computes exact BSC from equations referenced by the article
     """
     if bessel:
-        return special.j0((degree + 1/2) * np.sin(axicon))
+        return special.j0(float((degree + 1/2) * np.sin(axicon)))
 
     return (1 + np.cos(axicon)) / (2 * degree * (degree + 1)) \
             * (legendre_tau(degree, 1, np.cos(axicon)) \
@@ -182,7 +182,7 @@ def beam_shape_mtx(degree, order, mode='TM'):
     try:
         return table[degree, order]
     except KeyError:
-        with open(str(pathlib.Path(PATH + mode + '5.mtx').absolute()), 'rb') as g:
+        with open(str(pathlib.Path(PATH + mode + 'z05c.mtx').absolute()), 'rb') as g:
             print("LOADING MATRIX: ", mode, "m = ", order, "n = ", degree)
             matrix = mmread(g)
         for row in matrix:

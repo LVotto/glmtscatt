@@ -354,7 +354,7 @@ def test_plot_2d_bessel():
 
     plt.show()
 
-def test_plot_2d():
+def test_plot_2d(x_min=-10, x_max=10, y_min=0, y_max=450, num=300):
     electric_i_tm = SphericalField(radial=glmt.radial_electric_i_tm,
                                    theta=glmt.theta_electric_i_tm,
                                    phi=glmt.phi_electric_i_tm)
@@ -364,8 +364,8 @@ def test_plot_2d():
 
     cartesian_electric_i = CartesianField(spherical=electric_i)
 
-    x = np.linspace(-10, 10, 300)
-    y = np.linspace(0, 450, 300)
+    x = np.linspace(x_min, x_max, num)
+    y = np.linspace(y_min, y_max, num)
     X, Y = np.meshgrid(x, y)
 
     start_time = time.time()
@@ -747,10 +747,7 @@ def plot_3d_xz(min_z=-22E-6,max_z=22E-6, min_x=-10E-6, max_x=10E-6, num=400,
     
     # Plot the surface.
     surf = ax.plot_surface(X, Z, F * F, cmap=cmap, antialiased=True)
-    # Customize the z axis.
-    #ax.set_zlim(0, 8)
-    #ax.zaxis.set_major_locator(LinearLocator(10))
-    #ax.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
+
     # Add a color bar which maps values to colors.
     fig.colorbar(surf, shrink=0.5, aspect=15, label='|E|² [v²/m²]')
     ax.set_xlabel('x [um]')
@@ -827,6 +824,7 @@ def square_abs_z(x, field=declare_cartesian_electric_field(),
         pickle.dump(sz, f)
         
 def plot_and_store_json():
+    glmt.SHAPE = 'bessel'
     t, s = plot_square_abs_in_x(start=0, stop=100, num=400)
     plot_handler = PlotHandler(path='grafbessel.json',
                                data=[t, s],
