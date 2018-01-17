@@ -86,7 +86,7 @@ class JSONStoreManager(json.encoder.JSONEncoder):
        else:
            return list(iterable)
        if isinstance(o, np.float128):
-           return json.JSONEncoder.default(self, base64.b64encode(o))
+           return json.JSONEncoder.default(self, np.float64(o))
        # Let the base class default method raise the TypeError
        return json.JSONEncoder.default(self, o)
 
@@ -113,11 +113,25 @@ class PlotHandler(JSONStoreManager):
                      'data': self.data}
 
     def plot(self):
-        plt.plot(self.data['data'][0], self.data['data'][1])
-        plt.xlabel(self.data['labels'][0])
-        plt.ylabel(self.data['labels'][1])
-        plt.title(self.data['title'])
-        return plt.show()
+        plt.figure()
+        if self.shape == 1:
+            plt.plot(self.data['data'][0], self.data['data'][1])
+            plt.xlabel(self.data['labels'][0])
+            plt.ylabel(self.data['labels'][1])
+            plt.title(self.data['title'])
+
+        if self.shape == 2:
+            ax = plt.axes()
+            cs = ax.contourf(self.data['data'][0],
+                              self.data['data'][1],
+                              self.data['data'][2])
+            plt.colorbar(cs, format="%.2f")
+            ax.set_aspect('equal', 'box')
+            ax.set_xlabel(self.data['labels'][0])
+            ax.set_ylabel(self.data['labels'][1])
+            plt.title(self.data['title'])
+
+        plt.show()
 
 
 class Pickler():

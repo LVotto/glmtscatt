@@ -30,7 +30,7 @@ NUM = 500
 def plot_square_abs_in_z(x, start=START, stop=STOP, num=NUM, pickle_file='cache'):
     e = declare_cartesian_electric_field()
     t = np.linspace(start, stop, num)
-    
+
     try:
         with open(str(pathlib.Path('../pickles/%s.pickle' % pickle_file).absolute()), 'rb') as f:
             print('Loading results: ')
@@ -56,11 +56,11 @@ def plot_square_abs_in_z(x, start=START, stop=STOP, num=NUM, pickle_file='cache'
     plt.show()
     with open(str(pathlib.Path('../pickles/%s.pickle' % pickle_file).absolute()), 'wb') as f:
         pickle.dump(sz, f)
-    
-    
+
+
 def plot_square_abs_in_x(start=START, stop=STOP, num=NUM):
     e = declare_cartesian_electric_field()
-    
+
     t = np.linspace(start, stop, num)
     s = []
     for j in t:
@@ -682,7 +682,7 @@ def test_increment_decay():
     wave_number_k = WAVE_NUMBER
     theta = np.pi/2
     phi = 0
-    
+
     for radial in r:
         riccati_bessel_list = _riccati_bessel_j(max_it,
                                                 wave_number_k * radial)
@@ -721,22 +721,23 @@ def plot_n_max(max_radial=1000, num=500):
     plt.xlabel('r [micrômetros]')
     plt.ylabel('N(r)')
     plt.show()
-    
+
 def plot_3d_xz(min_z=-22E-6,max_z=22E-6, min_x=-10E-6, max_x=10E-6, num=400,
                load=True, file_name='2d_zx', cmap=cm.inferno):
     f = declare_cartesian_electric_field()
-    
+
     tz = np.linspace(min_z, max_z, num)
     tx = np.linspace(min_x, max_x, num)
     X, Z = np.meshgrid(tx, tz)
-    
+
     fig = plt.figure()
     ax = fig.gca(projection='3d')
-    
+
     if load:
         print('::::: Loading 2D XZ graph :::::')
         with open_file(file_name=file_name) as f:
             F = pickle.load(f)
+            print(len(F))
     else:
         start_time = time.time()
         print('::::: Plotting 2D XZ graph :::::')
@@ -744,7 +745,7 @@ def plot_3d_xz(min_z=-22E-6,max_z=22E-6, min_x=-10E-6, max_x=10E-6, num=400,
         print("--- %s seconds ---" % (time.time() - start_time))
         with open_file(file_name=file_name, operation='wb') as f:
             pickle.dump(F, f)
-    
+
     # Plot the surface.
     surf = ax.plot_surface(X, Z, F * F, cmap=cmap, antialiased=True)
 
@@ -752,19 +753,19 @@ def plot_3d_xz(min_z=-22E-6,max_z=22E-6, min_x=-10E-6, max_x=10E-6, num=400,
     fig.colorbar(surf, shrink=0.5, aspect=15, label='|E|² [v²/m²]')
     ax.set_xlabel('x [um]')
     ax.set_ylabel('z [um]')
-    plt.show()    
-    
+    plt.show()
+
     contourf = plt.contourf(X, Z, F * F, cmap=cmap)
     fig.colorbar(contourf, shrink=0.5, aspect=15, label='|E|² [v²/m²]')
-    plt.show()    
-    
+    plt.show()
+
     return X, Z, F
 
 def plot_component_in_z(x, start=START, stop=STOP, num=NUM,
                         load=False, pickle_file='cache', component='x'):
     e = declare_cartesian_electric_field()
     t = np.linspace(start, stop, num)
-    
+
     if load:
         with open(str(pathlib.Path('../pickles/%s.pickle' % pickle_file).absolute()), 'rb') as f:
             print('Loading results: ')
@@ -790,13 +791,13 @@ def plot_component_in_z(x, start=START, stop=STOP, num=NUM,
     plt.show()
     with open(str(pathlib.Path('../pickles/%s.pickle' % pickle_file).absolute()), 'wb') as f:
         pickle.dump(sz, f)
-        
-def square_abs_z(x, field=declare_cartesian_electric_field(), 
+
+def square_abs_z(x, field=declare_cartesian_electric_field(),
                  start=START, stop=STOP, num=NUM, load=False,
                  pickle_file='cache', component='x'):
     e = field
     t = np.linspace(start, stop, num)
-    
+
     if load:
         with open(str(pathlib.Path('../pickles/%s.pickle' % pickle_file).absolute()), 'rb') as f:
             print('Loading results: ')
@@ -822,16 +823,29 @@ def square_abs_z(x, field=declare_cartesian_electric_field(),
     plt.show()
     with open(str(pathlib.Path('../pickles/%s.pickle' % pickle_file).absolute()), 'wb') as f:
         pickle.dump(sz, f)
-        
+
 def plot_and_store_json():
-    glmt.SHAPE = 'bessel'
     t, s = plot_square_abs_in_x(start=0, stop=100, num=400)
     plot_handler = PlotHandler(path='grafbessel.json',
                                data=[t, s],
                                title='Módulo ao quadrado do feixe de Bessel',
-                               labels=['x [micrômetros]', 
+                               labels=['x [micrômetros]',
                                        '|E|² [V²/m²]'],
                                shape=1
+                              )
+    plot_handler.store()
+    return plot_handler.plot()
+
+def test_json_2d():
+    x = np.linspace(0, 2 * np.pi, 100)
+    X, Y = np.meshgrid(x, x)
+    Z = np.sin(X + Y)
+    plot_handler = PlotHandler(path='sinxpy.json',
+                               data=[X, Y, Z],
+                               title='sin(x + y)',
+                               labels=['x-axis',
+                                       'y-axis'],
+                               shape=2
                               )
     plot_handler.store()
     return plot_handler.plot()

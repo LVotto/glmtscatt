@@ -25,7 +25,7 @@ PATH = "../mtx/gnm"
 GTE = {}
 GTM = {}
 MAX_IT = 600
-SHAPE = 'bessel'
+SHAPE = 'mtx'
 DEGREES = [-1, 1]
 
 
@@ -156,23 +156,24 @@ def _beam_shape_fw(degree, order, mode='TM', max_it=15):
 
     raise ValueError('This program understands only \'TM\' or \'TE\' modes, not %s.' % mode)
 
-def beam_shape_mtx(degree, order, mode='TM'):
+def beam_shape_mtx(degree, order, mode='TM', shape='z05s'):
     """ Get BSCs from .mtx file stored in the mtx directory. """
     global GTE
     global GTM
+    path = str(pathlib.Path('../pickles/gfw_g_%s.pickle' % (mode + shape)).absolute())
     if mode == 'TM' and GTM:
         return GTM[degree, order]
     if mode == 'TE' and GTE:
         return GTE[degree, order]
 
     try:
-        with open(str(pathlib.Path('../pickles/gfw_g_%s.pickle' % mode).absolute()), 'rb') as f:
+        with open(path, 'rb') as f:
             pass
     except FileNotFoundError:
-        with open(str(pathlib.Path('../pickles/gfw_g_%s.pickle' % mode).absolute()), 'wb') as f:
+        with open(path, 'wb') as f:
             pickle.dump({}, f)
 
-    with open(str(pathlib.Path('../pickles/gfw_g_%s.pickle' % mode).absolute()), 'rb') as f:
+    with open(path, 'rb') as f:
         table = pickle.load(f)
         if mode == 'TM' and table:
             GTM = table
@@ -182,12 +183,12 @@ def beam_shape_mtx(degree, order, mode='TM'):
     try:
         return table[degree, order]
     except KeyError:
-        with open(str(pathlib.Path(PATH + mode + 'z05c.mtx').absolute()), 'rb') as g:
+        with open(str(pathlib.Path(PATH + mode + shape + '.mtx').absolute()), 'rb') as g:
             print("LOADING MATRIX: ", mode, "m = ", order, "n = ", degree)
             matrix = mmread(g)
         for row in matrix:
             table[row[0], row[1]] = row[2] + 1j * row[3]
-        with open(str(pathlib.Path('../pickles/gfw_g_%s.pickle' % mode).absolute()), 'wb') as f:
+        with open(path, 'wb') as f:
             pickle.dump(table, f)
         return table[degree, order]
 
