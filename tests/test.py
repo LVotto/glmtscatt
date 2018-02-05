@@ -35,12 +35,10 @@ def plot_square_abs_in_z(x, start=START, stop=STOP, num=NUM, pickle_file='cache'
         with open(str(pathlib.Path('../pickles/%s.pickle' % pickle_file).absolute()), 'rb') as f:
             print('Loading results: ')
             sz = pickle.load(f)
-            print(sz)
             for item in sz:
                 if np.isnan(item):
                     item = 0
-                    print(sz)
-            plt.plot(len(sz), sz, 'firebrick')
+            plt.plot(t, sz, 'firebrick')
     except FileNotFoundError:
         print('There are no saved results. Calculating...')
         sz = []
@@ -56,6 +54,7 @@ def plot_square_abs_in_z(x, start=START, stop=STOP, num=NUM, pickle_file='cache'
     plt.show()
     with open(str(pathlib.Path('../pickles/%s.pickle' % pickle_file).absolute()), 'wb') as f:
         pickle.dump(sz, f)
+    return t, sz
 
 
 def plot_square_abs_in_x(start=START, stop=STOP, num=NUM):
@@ -327,7 +326,7 @@ def test_plot_2d_bessel():
     start_time = time.time()
     try:
         print('Searching for results...')
-        with open(str(pathlib.Path('../pickles/frozen2d.pickle').absolute()), 'rb') as f:
+        with open(str(pathlib.Path('../pickles/bessel2d.pickle').absolute()), 'rb') as f:
             xzdata, xydata = pickle.load(f)
             print('Results where found!')
     except FileNotFoundError:
@@ -354,7 +353,7 @@ def test_plot_2d_bessel():
 
     plt.show()
 
-def test_plot_2d(x_min=-10, x_max=10, y_min=0, y_max=450, num=300):
+def test_plot_2d(x_min=-10, x_max=10, y_min=0, y_max=100, num=125):
     electric_i_tm = SphericalField(radial=glmt.radial_electric_i_tm,
                                    theta=glmt.theta_electric_i_tm,
                                    phi=glmt.phi_electric_i_tm)
@@ -371,7 +370,7 @@ def test_plot_2d(x_min=-10, x_max=10, y_min=0, y_max=450, num=300):
     start_time = time.time()
     try:
         print('Searching for results')
-        with open(str(pathlib.Path('../pickles/ggfw3300a.pickle').absolute()), 'rb') as f:
+        with open(str(pathlib.Path('../pickles/ggfw3.pickle').absolute()), 'rb') as f:
             xzdata = pickle.load(f)
             print('Results where found!')
     except FileNotFoundError:
@@ -382,7 +381,7 @@ def test_plot_2d(x_min=-10, x_max=10, y_min=0, y_max=450, num=300):
             pickle.dump(xzdata, f)
 
     fig, ax = plt.subplots(1, 1)
-    levels = np.linspace(0, 2, 40)
+    levels = np.linspace(0, 8, 40)
     cs1 = ax.contourf(X, Y, xzdata, levels=levels, cmap=cm.hot)
     with open(str(pathlib.Path('../pickles/ggfw3300a.pickle').absolute()), 'wb') as f:
         pickle.dump(xzdata, f)
@@ -392,12 +391,12 @@ def test_plot_2d(x_min=-10, x_max=10, y_min=0, y_max=450, num=300):
     cs1 = ax.contourf(X, Y, pow(xzdata, 2), cmap=cm.inferno)
     #ax.set_aspect('equal', 'box')
     fig.colorbar(cs1, format="%.2f")
-    ax.set_aspect('equal', 'box')
-    fig.colorbar(cs1, format="%.2f")
+    #ax.set_aspect('equal', 'box')
     ax.set_xlabel('x [micrômetros]')
     ax.set_ylabel('z [micrômetros]')
 
     plt.show()
+    return X, Y, pow(xzdata, 2)
 
 
 def test_plot_3d_frozen():
@@ -825,11 +824,12 @@ def square_abs_z(x, field=declare_cartesian_electric_field(),
         pickle.dump(sz, f)
 
 def plot_and_store_json():
-    t, s = plot_square_abs_in_x(start=0, stop=100, num=400)
-    plot_handler = PlotHandler(path='grafbessel.json',
+    t, s = plot_square_abs_in_z(0, start=0, stop=450, num=200,
+                                pickle_file='z_fw3')
+    plot_handler = PlotHandler(path='z_fw3.json',
                                data=[t, s],
-                               title='Módulo ao quadrado do feixe de Bessel',
-                               labels=['x [micrômetros]',
+                               title='Another sample Frozen Wave',
+                               labels=['z [micrometers]',
                                        '|E|² [V²/m²]'],
                                shape=1
                               )
@@ -837,14 +837,12 @@ def plot_and_store_json():
     return plot_handler.plot()
 
 def test_json_2d():
-    x = np.linspace(0, 2 * np.pi, 100)
-    X, Y = np.meshgrid(x, x)
-    Z = np.sin(X + Y)
-    plot_handler = PlotHandler(path='sinxpy.json',
+    X, Y, Z = test_plot_2d(x_min=-200, x_max=200, y_min=-200, y_max=200)
+    plot_handler = PlotHandler(path='2d_fw3.json',
                                data=[X, Y, Z],
-                               title='sin(x + y)',
+                               title='Another sample Frozen Wave',
                                labels=['x-axis',
-                                       'y-axis'],
+                                       'z-axis'],
                                shape=2
                               )
     plot_handler.store()

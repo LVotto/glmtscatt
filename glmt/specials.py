@@ -32,10 +32,20 @@ def riccati_bessel_j(degree, argument):
     """
     return special.riccati_jn(degree, float(argument))[0]
 
+def riccati_bessel_y(degree, argument):
+    """ Riccati-Bessel function of second kind
+    """
+    return special.riccati_yn(degree, float(argument))[0]
+
 def d_riccati_bessel_j(degree, argument):
     """ Derivative of Riccati-Bessel function of first kind
     """
     return special.riccati_jn(degree, float(argument))[1]
+
+def d_riccati_bessel_y(degree, argument):
+    """ Derivative of Riccati-Bessel function of second kind
+    """
+    return special.riccati_yn(degree, float(argument))[1]
 
 def d2_riccati_bessel_j(degree, argument):
     """ d2 Psi """
@@ -44,6 +54,14 @@ def d2_riccati_bessel_j(degree, argument):
     return 1 / (argument) \
             * (degree + pow(degree, 2) - pow(argument, 2)) \
             * special.spherical_jn(degree, float(argument))
+
+def d2_riccati_bessel_y(degree, argument):
+    """ d2 xi """
+    if argument == 0:
+        argument = 1E-16
+    return 1 / (argument) \
+            * (degree + pow(degree, 2) - pow(argument, 2)) \
+            * special.spherical_yn(degree, float(argument))
 
 def radial_riccati_bessel(degree, argument, riccati_list):
     """ Riccati-Bessel part of radial component """

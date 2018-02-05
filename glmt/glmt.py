@@ -13,9 +13,14 @@ from scipy.io import mmread
 import numpy as np
 import pickle
 
-from glmt.constants import AXICON, WAVE_NUMBER
+from glmt.constants import (AXICON, WAVE_NUMBER, PERMEABILITY,
+                           SPHERE_PERMEABILITY, REFFRACTIVE_INDEX,
+                           WAVELENGTH)
 from glmt.specials import (_riccati_bessel_j, d2_riccati_bessel_j,
-                           legendre_p, legendre_tau, legendre_pi)
+                           legendre_p, legendre_tau, legendre_pi,
+                           riccati_bessel_j, riccati_bessel_y,
+                           d_riccati_bessel_j, d_riccati_bessel_y,
+                           d2_riccati_bessel_j)
 from glmt.frozenwave import THETA, COEFF, axicon_omega
 from glmt.utils import get_max_it
 
@@ -156,7 +161,7 @@ def _beam_shape_fw(degree, order, mode='TM', max_it=15):
 
     raise ValueError('This program understands only \'TM\' or \'TE\' modes, not %s.' % mode)
 
-def beam_shape_mtx(degree, order, mode='TM', shape='z05s'):
+def beam_shape_mtx(degree, order, mode='TM', shape='3'):
     """ Get BSCs from .mtx file stored in the mtx directory. """
     global GTE
     global GTM
@@ -199,12 +204,48 @@ def plane_wave_coefficient(degree, wave_number_k):
             * pow(-1j, degree) \
             * (2 * degree + 1) / (degree * (degree + 1))
 
+def mie_coefficient_a(order, diameter=10E-6, permeability=PERMEABILITY,
+                      sp_permeability=SPHERE_PERMEABILITY,
+                      wavelength=WAVELENGTH,
+                      reffractive=REFFRACTIVE_INDEX):
+    alpha = np.pi * diameter / wavelength
+    beta = reffractive * alpha
+    return ((sp_permeability * riccati_bessel_j(order, alpha)
+             * d_riccati_bessel_j(order, beta)
+             - permeability * reffractive
+             * d_riccati_bessel_j(order, alpha)
+             * riccati_bessel_j(order, beta))
+            / (sp_permeability * riccati_bessel_y(order, alpha)
+               * d_riccati_bessel_j(order, beta)
+               - permeability * reffractive
+               * d_riccati_bessel_y(order, alpha)
+               * riccati_bessel_j(order, beta)))
+
+def mie_coefficient_b(order, diameter=10E-6, permeability=PERMEABILITY,
+                      sp_permeability=SPHERE_PERMEABILITY,
+                      wavelength=WAVELENGTH,
+                      reffractive=REFFRACTIVE_INDEX):
+    alpha = np.pi * diameter / wavelength
+    beta = reffractive * alpha
+    return ((permeability * reffractive
+             * riccati_bessel_j(order, alpha)
+             * d_riccati_bessel_j(order, beta)
+             - sp_permeability
+             * d_riccati_bessel_j(order, alpha)
+             * riccati_bessel_j(order, beta))
+            / (permeability * reffractive
+               * riccati_bessel_y(order, alpha)
+               * d_riccati_bessel_j(order, beta)
+               - sp_permeability
+               * d_riccati_bessel_y(order, alpha)
+               * riccati_bessel_j(order, beta)))
+
+
 def radial_electric_i_tm(radial, theta, phi, wave_number_k):
     """ Computes the radial component of inciding electric field in TM mode.
     """
     result = 0
     n = 1
-
 
     riccati_bessel_list = _riccati_bessel_j(get_max_it(radial),
                                             wave_number_k * radial)
