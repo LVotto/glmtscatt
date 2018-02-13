@@ -23,29 +23,29 @@ def squared_bessel_0(argument, scale):
     return pow(special.j0(scale * argument), 2)
 
 def _riccati_bessel_j(degree, argument):
-    """ Riccati-Bessel function of first kind and derivative
-    """
+    """ Riccati-Bessel function of first kind and derivative """
     return special.riccati_jn(degree, float(argument))
 
+def _riccati_bessel_y(degree, argument):
+    """ Riccati-Bessel function of first kind and derivative """
+    return special.riccati_yn(degree, float(argument))
+
 def riccati_bessel_j(degree, argument):
-    """ Riccati-Bessel function of first kind
-    """
-    return special.riccati_jn(degree, float(argument))[0]
+    """ Riccati-Bessel function of first kind """
+    return special.riccati_jn(degree, float(argument))[0][degree]
 
 def riccati_bessel_y(degree, argument):
-    """ Riccati-Bessel function of second kind
-    """
-    return special.riccati_yn(degree, float(argument))[0]
+    """ Riccati-Bessel function of second kind """
+    return special.riccati_jn(degree, float(argument))[0][degree] \
+           - 1j * special.riccati_yn(degree, float(argument))[0][degree]
 
 def d_riccati_bessel_j(degree, argument):
-    """ Derivative of Riccati-Bessel function of first kind
-    """
-    return special.riccati_jn(degree, float(argument))[1]
+    """ Derivative of Riccati-Bessel function of first kind """
+    return special.riccati_jn(degree, float(argument))[1][degree]
 
 def d_riccati_bessel_y(degree, argument):
-    """ Derivative of Riccati-Bessel function of second kind
-    """
-    return special.riccati_yn(degree, float(argument))[1]
+    """ Derivative of Riccati-Bessel function of second kind """
+    return special.riccati_yn(degree, float(argument))[1][degree]
 
 def d2_riccati_bessel_j(degree, argument):
     """ d2 Psi """

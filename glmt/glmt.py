@@ -16,11 +16,11 @@ import pickle
 from glmt.constants import (AXICON, WAVE_NUMBER, PERMEABILITY,
                            SPHERE_PERMEABILITY, REFFRACTIVE_INDEX,
                            WAVELENGTH)
-from glmt.specials import (_riccati_bessel_j, d2_riccati_bessel_j,
+from glmt.specials import (_riccati_bessel_j, _riccati_bessel_y,
                            legendre_p, legendre_tau, legendre_pi,
                            riccati_bessel_j, riccati_bessel_y,
                            d_riccati_bessel_j, d_riccati_bessel_y,
-                           d2_riccati_bessel_j)
+                           d2_riccati_bessel_j, d2_riccati_bessel_y)
 from glmt.frozenwave import THETA, COEFF, axicon_omega
 from glmt.utils import get_max_it
 
@@ -30,7 +30,7 @@ PATH = "../mtx/gnm"
 GTE = {}
 GTM = {}
 MAX_IT = 600
-SHAPE = 'mtx'
+SHAPE = 'bessel'
 DEGREES = [-1, 1]
 
 
@@ -47,8 +47,7 @@ def beam_shape_g(degree, order, axicon=AXICON, mode='TM', max_it=15, shape=SHAPE
     raise ValueError('Shape \"%s\" is not supported' % shape)
 
 def beam_shape_g_exa(degree, axicon=AXICON, bessel=True):
-    """ Computes exact BSC from equations referenced by the article
-    """
+    """ Computes exact BSC from equations referenced by the article """
     if bessel:
         return special.j0(float((degree + 1/2) * np.sin(axicon)))
 
@@ -198,8 +197,7 @@ def beam_shape_mtx(degree, order, mode='TM', shape='3'):
         return table[degree, order]
 
 def plane_wave_coefficient(degree, wave_number_k):
-    """ Computes plane wave coefficient c_{n}^{pw}
-    """
+    """ Computes plane wave coefficient c_{n}^{pw} """
     return (1 / (1j * wave_number_k)) \
             * pow(-1j, degree) \
             * (2 * degree + 1) / (degree * (degree + 1))
@@ -208,38 +206,53 @@ def mie_coefficient_a(order, diameter=10E-6, permeability=PERMEABILITY,
                       sp_permeability=SPHERE_PERMEABILITY,
                       wavelength=WAVELENGTH,
                       reffractive=REFFRACTIVE_INDEX):
+    """ Obtains the value of Mie coefficient a_n.
+
+        Due to the magnitude of the denominator for sufficiently high orders,
+        we treat the case where this denominator is too high or zero - which
+        happens when its value is too high to be represented in a computer.
+    """
     alpha = np.pi * diameter / wavelength
     beta = reffractive * alpha
-    return ((sp_permeability * riccati_bessel_j(order, alpha)
-             * d_riccati_bessel_j(order, beta)
-             - permeability * reffractive
-             * d_riccati_bessel_j(order, alpha)
-             * riccati_bessel_j(order, beta))
-            / (sp_permeability * riccati_bessel_y(order, alpha)
-               * d_riccati_bessel_j(order, beta)
-               - permeability * reffractive
-               * d_riccati_bessel_y(order, alpha)
-               * riccati_bessel_j(order, beta)))
+    denominator = (sp_permeability * riccati_bessel_y(order, alpha)
+                   * d_riccati_bessel_j(order, beta)
+                   - permeability * reffractive
+                   * d_riccati_bessel_y(order, alpha)
+                   * riccati_bessel_j(order, beta))
+    if denominator > 1E20 or not denominator:
+        return 0
+
+    return (sp_permeability * riccati_bessel_j(order, alpha)
+            * d_riccati_bessel_j(order, beta)
+            - permeability * reffractive
+            * d_riccati_bessel_j(order, alpha)
+            * riccati_bessel_j(order, beta)) / denominator
 
 def mie_coefficient_b(order, diameter=10E-6, permeability=PERMEABILITY,
                       sp_permeability=SPHERE_PERMEABILITY,
                       wavelength=WAVELENGTH,
                       reffractive=REFFRACTIVE_INDEX):
+    """ Obtains the value of Mie coefficient b_n.
+
+    Denominator is treated as in mie_coefficient_a.
+    """
     alpha = np.pi * diameter / wavelength
     beta = reffractive * alpha
-    return ((permeability * reffractive
-             * riccati_bessel_j(order, alpha)
-             * d_riccati_bessel_j(order, beta)
-             - sp_permeability
-             * d_riccati_bessel_j(order, alpha)
-             * riccati_bessel_j(order, beta))
-            / (permeability * reffractive
-               * riccati_bessel_y(order, alpha)
-               * d_riccati_bessel_j(order, beta)
-               - sp_permeability
-               * d_riccati_bessel_y(order, alpha)
-               * riccati_bessel_j(order, beta)))
+    denominator = (permeability * reffractive
+                   * riccati_bessel_y(order, alpha)
+                   * d_riccati_bessel_j(order, beta)
+                   - sp_permeability
+                   * d_riccati_bessel_y(order, alpha)
+                   * riccati_bessel_j(order, beta))
+    if denominator > 1E20 or not denominator:
+        return 0
 
+    return (permeability * reffractive
+            * riccati_bessel_j(order, alpha)
+            * d_riccati_bessel_j(order, beta)
+            - sp_permeability
+            * d_riccati_bessel_j(order, alpha)
+            * riccati_bessel_j(order, beta)) / denominator
 
 def radial_electric_i_tm(radial, theta, phi, wave_number_k):
     """ Computes the radial component of inciding electric field in TM mode.
@@ -266,6 +279,31 @@ def radial_electric_i_tm(radial, theta, phi, wave_number_k):
 
     return wave_number_k * result
 
+def radial_electric_s_tm(radial, theta, phi, wave_number_k):
+    """ Computes the radial component of scattered electric field in TM mode.
+    """
+    result = 0
+    n = 1
+
+    riccati_bessel_list = _riccati_bessel_y(get_max_it(radial),
+                                            wave_number_k * radial)
+    riccati_bessel = riccati_bessel_list[0]
+
+    max_it = get_max_it(radial)
+    while n <= max_it:
+        for m in DEGREES:
+            increment = plane_wave_coefficient(n, wave_number_k) \
+                      * mie_coefficient_a(n) \
+                      * beam_shape_g(n, m, mode='TM') \
+                      * (d2_riccati_bessel_y(n, wave_number_k * radial) \
+                         + riccati_bessel[n]) \
+                      * legendre_p(n, abs(m), np.cos(theta)) \
+                      * np.exp(1j * m * phi)
+            result += increment
+        n += 1
+
+    return -wave_number_k * result
+
 def theta_electric_i_tm(radial, theta, phi, wave_number_k):
     """ Computes the theta component of inciding electric field in TM mode.
     """
@@ -289,6 +327,31 @@ def theta_electric_i_tm(radial, theta, phi, wave_number_k):
             result += increment
         n += 1
     return result / radial
+
+def theta_electric_s_tm(radial, theta, phi, wave_number_k):
+    """ Computes the theta component of inciding electric field in TM mode.
+    """
+    result = 0
+    n = 1
+    # Due to possible singularity near origin, we approximate null radial
+    # component to a small value.
+    radial = radial or 1E-16
+
+    riccati_bessel_list = _riccati_bessel_y(get_max_it(radial),
+                                            wave_number_k * radial)
+    d_riccati_bessel = riccati_bessel_list[1]
+    max_it = get_max_it(radial)
+    while n <= max_it:
+        for m in DEGREES:
+            increment = plane_wave_coefficient(n, wave_number_k) \
+                      * mie_coefficient_a(n) \
+                      * beam_shape_g(n, m, mode='TM') \
+                      * d_riccati_bessel[n] \
+                      * legendre_tau(n, abs(m), np.cos(theta)) \
+                      * np.exp(1j * m * phi)
+            result += increment
+        n += 1
+    return -result / radial
 
 def theta_electric_i_te(radial, theta, phi, wave_number_k):
     """ Computes the theta component of inciding electric field in TE mode.
@@ -315,6 +378,33 @@ def theta_electric_i_te(radial, theta, phi, wave_number_k):
         n += 1
 
     return result / radial
+
+def theta_electric_s_te(radial, theta, phi, wave_number_k):
+    """ Computes the theta component of inciding electric field in TE mode.
+    """
+    result = 0
+    n = 1
+    # Due to possible singularity near origin, we approximate null radial
+    # component to a small value.
+    radial = radial or 1E-16
+
+    riccati_bessel_list = _riccati_bessel_y(get_max_it(radial),
+                                            wave_number_k * radial)
+    riccati_bessel = riccati_bessel_list[0]
+    max_it = get_max_it(radial)
+    while n <= max_it:
+        for m in DEGREES:
+            increment = m \
+                      * plane_wave_coefficient(n, wave_number_k) \
+                      * mie_coefficient_b(n) \
+                      * beam_shape_g(n, m, mode='TE') \
+                      * riccati_bessel[n] \
+                      * legendre_pi(n, abs(m), np.cos(theta)) \
+                      * np.exp(1j * m * phi)
+            result += increment
+        n += 1
+
+    return -result / radial
 
 def phi_electric_i_tm(radial, theta, phi, wave_number_k):
     """ Computes the phi component of inciding electric field in TM mode.
@@ -343,6 +433,34 @@ def phi_electric_i_tm(radial, theta, phi, wave_number_k):
 
     return 1j * result / radial
 
+def phi_electric_s_tm(radial, theta, phi, wave_number_k):
+    """ Computes the phi component of inciding electric field in TM mode.
+    """
+    result = 0
+    n = 1
+    # Due to possible singularity near origin, we approximate null radial
+    # component to a small value.
+    radial = radial or 1E-16
+
+    riccati_bessel_list = _riccati_bessel_y(get_max_it(radial),
+                                            wave_number_k * radial)
+    d_riccati_bessel = riccati_bessel_list[1]
+
+    max_it = get_max_it(radial)
+    while n <= max_it:
+        for m in DEGREES:
+            increment = m \
+                      * plane_wave_coefficient(n, wave_number_k) \
+                      * mie_coefficient_a(n) \
+                      * beam_shape_g(n, m, mode='TM') \
+                      * d_riccati_bessel[n] \
+                      * legendre_pi(n, abs(m), np.cos(theta)) \
+                      * np.exp(1j * m * phi)
+            result += increment
+        n += 1
+
+    return -1j * result / radial
+
 def phi_electric_i_te(radial, theta, phi, wave_number_k):
     """ Computes the phi component of inciding electric field in TE mode.
     """
@@ -369,6 +487,33 @@ def phi_electric_i_te(radial, theta, phi, wave_number_k):
         n += 1
 
     return 1j * result / radial
+
+def phi_electric_s_te(radial, theta, phi, wave_number_k):
+    """ Computes the phi component of inciding electric field in TE mode.
+    """
+    result = 0
+    n = 1
+    m = 0
+    # Due to possible singularity near origin, we approximate null radial
+    # component to a small value.
+    radial = radial or 1E-16
+
+    riccati_bessel_list = _riccati_bessel_y(get_max_it(radial),
+                                            wave_number_k * radial)
+    riccati_bessel = riccati_bessel_list[0]
+
+    max_it = get_max_it(radial)
+    while n <= max_it:
+        for m in DEGREES:
+            increment = plane_wave_coefficient(n, wave_number_k) \
+                      * beam_shape_g(n, m, mode='TE') \
+                      * riccati_bessel[n] \
+                      * legendre_tau(n, abs(m), np.cos(theta)) \
+                      * np.exp(1j * m * phi)
+            result += increment
+        n += 1
+
+    return -1j * result / radial
 
 def abs_theta_electric_i(radial, theta, phi, wave_number_k):
     """ Calculates absolute value of inciding theta component """
