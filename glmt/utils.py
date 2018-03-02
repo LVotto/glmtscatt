@@ -30,7 +30,7 @@ def protected_denominator(value, epsilon=np.longdouble(1E-25)):
     else:
         return value
 
-def get_max_it(x_max, wave_number_k=WAVE_NUMBER):
+def get_max_it(x_max, wave_number_k=np.abs(WAVE_NUMBER)):
     """ Calculates stop iteration number """
     if np.isnan(x_max):
         return 2

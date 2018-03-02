@@ -208,9 +208,9 @@ def mie_coefficient_a(order, diameter=10E-6, permeability=PERMEABILITY,
                       reffractive=REFFRACTIVE_INDEX):
     """ Obtains the value of Mie coefficient a_n.
 
-        Due to the magnitude of the denominator for sufficiently high orders,
-        we treat the case where this denominator is too high or zero - which
-        happens when its value is too high to be represented in a computer.
+    Due to the magnitude of the denominator for sufficiently high orders,
+    we treat the case where this denominator is too high or zero - which
+    happens when its value is too high to be represented in a computer.
     """
     alpha = np.pi * diameter / wavelength
     beta = reffractive * alpha
@@ -220,6 +220,7 @@ def mie_coefficient_a(order, diameter=10E-6, permeability=PERMEABILITY,
                    * d_riccati_bessel_y(order, alpha)
                    * riccati_bessel_j(order, beta))
     if denominator > 1E20 or not denominator:
+        print("not den")
         return 0
 
     return (sp_permeability * riccati_bessel_j(order, alpha)

@@ -27,52 +27,6 @@ STOP = 100E-6
 START = -STOP
 NUM = 500
 
-def plot_square_abs_in_z(x, start=START, stop=STOP, num=NUM, pickle_file='cache'):
-    e = declare_cartesian_electric_field_i()
-    t = np.linspace(start, stop, num)
-
-    try:
-        with open(str(pathlib.Path('../pickles/%s.pickle' % pickle_file).absolute()), 'rb') as f:
-            print('Loading results: ')
-            sz = pickle.load(f)
-            for item in sz:
-                if np.isnan(item):
-                    item = 0
-            plt.plot(t, sz, 'firebrick')
-    except FileNotFoundError:
-        print('There are no saved results. Calculating...')
-        sz = []
-        for j in t:
-            sz.append(pow(e.abs(x=x, y=0, z=j * 1E-6,
-                               wave_number_k=WAVE_NUMBER),
-                         2)
-                    )
-            print("j = ", j, " -> ", get_max_it(abs(j) * 1E-6), ": ", sz[-1])
-    plt.plot(t, sz)
-    plt.xlabel('z [micrômetros]')
-    plt.ylabel('|E|² [V²/m²]')
-    plt.show()
-    with open(str(pathlib.Path('../pickles/%s.pickle' % pickle_file).absolute()), 'wb') as f:
-        pickle.dump(sz, f)
-    return t, sz
-
-
-def plot_square_abs_in_x(start=START, stop=STOP, num=NUM):
-    e = declare_cartesian_electric_field_s()
-
-    t = np.linspace(start, stop, num)
-    s = []
-    for j in t:
-        s.append(pow(e.abs(x=j * 1E-6, y=0, z=0,
-                           wave_number_k=WAVE_NUMBER),
-                     2)
-                )
-        print("j = ", j, " -> ", get_max_it(abs(j) * 1E-6), ": ", s[-1])
-    plt.plot(t, s)
-    plt.show()
-    return t, s
-
-
 def declare_spherical_electric_field_i():
     electric_i_tm = SphericalField(radial=glmt.radial_electric_i_tm,
                                    theta=glmt.theta_electric_i_tm,
@@ -116,6 +70,49 @@ def declare_cartesian_magnetic_field():
     magnetic_i = magnetic_i_te + magnetic_i_tm
 
     return CartesianField(spherical=magnetic_i)
+
+def plot_square_abs_in_z(x, field=declare_cartesian_electric_field(),
+                         start=START, stop=STOP, num=NUM, pickle_file='cache'):
+    e = field
+    t = np.linspace(start, stop, num)
+
+    try:
+        with open(str(pathlib.Path('../pickles/%s.pickle' % pickle_file).absolute()), 'rb') as f:
+            print('Loading results: ')
+            sz = pickle.load(f)
+            for item in sz:
+                if np.isnan(item):
+                    item = 0
+            plt.plot(t, sz, 'firebrick')
+    except FileNotFoundError:
+        print('There are no saved results. Calculating...')
+        sz = []
+        for j in t:
+            sz.append(pow(e.abs(x=x, y=0, z=j * 1E-6,
+                               wave_number_k=WAVE_NUMBER),
+                         2)
+                    )
+            print("j = ", j, " -> ", get_max_it(abs(j) * 1E-6), ": ", sz[-1])
+    plt.plot(t, sz)
+    plt.xlabel('z [micrômetros]')
+    plt.ylabel('|E|² [V²/m²]')
+    plt.show()
+    with open(str(pathlib.Path('../pickles/%s.pickle' % pickle_file).absolute()), 'wb') as f:
+        pickle.dump(sz, f)
+
+
+def plot_square_abs_in_x(field=declare_cartesian_electric_field(), start=START, stop=STOP, num=NUM):
+    e = field
+
+    t = np.linspace(start, stop, num)
+    s = []
+    for j in t:
+        s.append(pow(e.abs(x=j * 1E-6, y=0, z=0,
+                           wave_number_k=WAVE_NUMBER),2))
+        print("j = ", j, " -> ", get_max_it(abs(j) * 1E-6), ": ", s[-1])
+    plt.plot(t, s)
+    plt.show()
+    return t, s
 
 
 def do_some_plotting(function, *args, start=START, stop=STOP / 1E-6,
@@ -873,7 +870,8 @@ def test_json_2d():
     return plot_handler.plot()
 
 def test_mie_coeff_a(stop):
-    t = np.arange(0, stop)
+    from scipy.interpolate import interp1d
+    t = np.linspace(0, stop, num=stop+1, endpoint=True)
     s = []
     nan_j = 0
     for j in t:
@@ -882,7 +880,9 @@ def test_mie_coeff_a(stop):
             print('j = ', j, ' => ', s[-1])
         if np.isnan(s[-1]) and not nan_j:
             nan_j = j
-    plt.plot(t, s)
+    tnew = np.linspace(0, stop, num=10*stop, endpoint=True)
+    f = interp1d(t, s, kind=3)
+    plt.plot(t, s, 'o', tnew, f(tnew), '-')
     plt.show
     if nan_j:
         print("Got NaN since ", nan_j)
@@ -908,7 +908,7 @@ def plot_mie_coefficient_a_den(start=0, stop=1000):
     t = np.arange(start, stop)
     for n in t:
         s.append(abs(mie_coefficient_a_den(n)))
-        if n % 10:
+        if not n % 10:
             print("n = ", n, " => ", s[-1])
     plt.plot(t,s)
     plt.show()
@@ -933,6 +933,79 @@ def plot_mie_coefficient_a_num(start=0, stop=1000):
         if n % 10:
             print("n = ", n, " => ", s[-1])
     plt.plot(t,s)
+    plt.show()
+
+def plot_scattered_field_x(start=10, stop=50, num=300):
+    e = declare_cartesian_electric_field_s()
+    s = []
+    t = np.linspace(start, stop, num)
+    for j in t:
+        s.append(e.abs(x=j * 1E-6, y=0, z=0, wave_number_k=WAVE_NUMBER))
+        print("t = ", j, " => ", s[-1])
+    plt.plot(t, s)
+    plt.show()
+
+def plot_mie_coeff_rad(start=0, stop=35, num=500, order=1):
+    re=[]
+    im=[]
+    x=np.linspace(start,stop,num)
+
+    for j in x:
+        re.append(np.real(glmt.mie_coefficient_a(order,diameter=2E-6*j)))
+        im.append(np.imag(glmt.mie_coefficient_a(order,diameter=2E-6*j)))
+    plt.plot(x,re,x,im)
+    plt.show()
+
+def plot_riccati_bessel(order=1,start=0, stop=1E-6, num=300):
+    re = []
+    im = []
+    t = np.linspace(start, stop, num)
+    for j in t:
+        re.append(np.real(d_riccati_bessel_y(order, j)))
+        im.append(np.imag(d_riccati_bessel_y(order, j)))
+    plt.plot(t, re, t, im)
+    plt.show()
+
+def mie_coeff_a_num(order=1, alpha=0, permeability=PERMEABILITY,
+                    sp_permeability=SPHERE_PERMEABILITY,
+                    reffractive=REFFRACTIVE_INDEX):
+    beta = reffractive * alpha
+    return ((sp_permeability * riccati_bessel_j(order, alpha)
+             * d_riccati_bessel_j(order, beta)
+             - permeability * reffractive
+             * d_riccati_bessel_j(order, alpha)
+             * riccati_bessel_j(order, beta)))
+
+def mie_coeff_a_den(order=1, alpha=0, permeability=PERMEABILITY,
+                    sp_permeability=SPHERE_PERMEABILITY,
+                    reffractive=REFFRACTIVE_INDEX):
+    beta = reffractive * alpha
+    return (sp_permeability * riccati_bessel_y(order, alpha)
+               * d_riccati_bessel_j(order, beta)
+               - permeability * reffractive
+               * d_riccati_bessel_y(order, alpha)
+               * riccati_bessel_j(order, beta))
+
+def plot_mie_num(order=1,start=1E-6, stop=1E-3, num=300):
+    re = []
+    im = []
+    t = np.linspace(start, stop, num)
+    for j in t:
+        re.append(np.real(mie_coeff_a_num(order, alpha=j)))
+        im.append(np.imag(mie_coeff_a_num(order, alpha=j)))
+    plt.plot(t, re, t, im)
+    plt.show()
+
+def plot_mie_den(order=1,start=1E-6, stop=1E-3, num=300):
+    re = []
+    im = []
+    t = np.linspace(start, stop, num)
+    for j in t:
+        re.append(np.real(mie_coeff_a_den(order, alpha=j)))
+        im.append(np.imag(mie_coeff_a_den(order, alpha=j)))
+    plt.plot(t, re)
+    plt.show()
+    plt.plot(t, im)
     plt.show()
 
 MAX_IT = get_max_it(STOP)

@@ -45,7 +45,8 @@ def d_riccati_bessel_j(degree, argument):
 
 def d_riccati_bessel_y(degree, argument):
     """ Derivative of Riccati-Bessel function of second kind """
-    return special.riccati_yn(degree, float(argument))[1][degree]
+    return special.riccati_jn(degree, float(argument))[1][degree] \
+           - 1j * special.riccati_yn(degree, float(argument))[1][degree]
 
 def d2_riccati_bessel_j(degree, argument):
     """ d2 Psi """
