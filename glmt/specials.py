@@ -93,6 +93,9 @@ def legendre_tau(degree, order, argument):
 
 def legendre_pi(degree, order, argument):
     """ Generalized associated Legendre function pi
+    
+    .. math::
+        \\pi_n^m(x) = \\frac{P_n^m(x)}{\\sqrt{1-x^2}}
     """
     if argument == 1:
         argument = 1 - 1E-16

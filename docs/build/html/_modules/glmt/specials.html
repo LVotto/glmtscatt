@@ -244,6 +244,9 @@
 
 <div class="viewcode-block" id="legendre_pi"><a class="viewcode-back" href="../../glmt.html#glmt.specials.legendre_pi">[docs]</a><span class="k">def</span> <span class="nf">legendre_pi</span><span class="p">(</span><span class="n">degree</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">argument</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Generalized associated Legendre function pi</span>
+<span class="sd">    </span>
+<span class="sd">    .. math::</span>
+<span class="sd">        \\pi_n^m(x) = \\frac{P_n^m(x)}{\\sqrt{1-x^2}}</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">argument</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
         <span class="n">argument</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="mi">1</span><span class="n">E</span><span class="o">-</span><span class="mi">16</span>
@@ -298,6 +301,7 @@
       <script type="text/javascript" src="../../_static/jquery.js"></script>
       <script type="text/javascript" src="../../_static/underscore.js"></script>
       <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 
