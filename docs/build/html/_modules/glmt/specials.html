@@ -1,0 +1,190 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="Python">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>glmt.specials &#8212; glmtscatt  documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for glmt.specials</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Module for declaring special functions to be used in GLMT.</span>
+
+<span class="sd">@author: Luiz Felipe Machado Votto</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="k">import</span> <span class="n">misc</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="k">import</span> <span class="n">special</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<div class="viewcode-block" id="memoize"><a class="viewcode-back" href="../../glmt.html#glmt.specials.memoize">[docs]</a><span class="k">def</span> <span class="nf">memoize</span><span class="p">(</span><span class="n">function</span><span class="p">):</span>
+    <span class="n">CACHE</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">def</span> <span class="nf">memoized_function</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">args</span> <span class="ow">in</span> <span class="n">CACHE</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">CACHE</span><span class="p">[(</span><span class="n">args</span><span class="p">)]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">function</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">memoized_function</span></div>
+
+<div class="viewcode-block" id="squared_bessel_0"><a class="viewcode-back" href="../../glmt.html#glmt.specials.squared_bessel_0">[docs]</a><span class="k">def</span> <span class="nf">squared_bessel_0</span><span class="p">(</span><span class="n">argument</span><span class="p">,</span> <span class="n">scale</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Squared value for order 0 regular Bessel function &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">pow</span><span class="p">(</span><span class="n">special</span><span class="o">.</span><span class="n">j0</span><span class="p">(</span><span class="n">scale</span> <span class="o">*</span> <span class="n">argument</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span></div>
+
+<span class="k">def</span> <span class="nf">_riccati_bessel_j</span><span class="p">(</span><span class="n">degree</span><span class="p">,</span> <span class="n">argument</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Riccati-Bessel function of first kind and derivative &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">special</span><span class="o">.</span><span class="n">riccati_jn</span><span class="p">(</span><span class="n">degree</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">argument</span><span class="p">))</span>
+
+<span class="k">def</span> <span class="nf">_riccati_bessel_y</span><span class="p">(</span><span class="n">degree</span><span class="p">,</span> <span class="n">argument</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Riccati-Bessel function of first kind and derivative &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">special</span><span class="o">.</span><span class="n">riccati_yn</span><span class="p">(</span><span class="n">degree</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">argument</span><span class="p">))</span>
+
+<div class="viewcode-block" id="riccati_bessel_j"><a class="viewcode-back" href="../../glmt.html#glmt.specials.riccati_bessel_j">[docs]</a><span class="k">def</span> <span class="nf">riccati_bessel_j</span><span class="p">(</span><span class="n">degree</span><span class="p">,</span> <span class="n">argument</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Riccati-Bessel function of first kind &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">special</span><span class="o">.</span><span class="n">riccati_jn</span><span class="p">(</span><span class="n">degree</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">argument</span><span class="p">))[</span><span class="mi">0</span><span class="p">][</span><span class="n">degree</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="riccati_bessel_y"><a class="viewcode-back" href="../../glmt.html#glmt.specials.riccati_bessel_y">[docs]</a><span class="k">def</span> <span class="nf">riccati_bessel_y</span><span class="p">(</span><span class="n">degree</span><span class="p">,</span> <span class="n">argument</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Riccati-Bessel function of second kind &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">special</span><span class="o">.</span><span class="n">riccati_jn</span><span class="p">(</span><span class="n">degree</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">argument</span><span class="p">))[</span><span class="mi">0</span><span class="p">][</span><span class="n">degree</span><span class="p">]</span> \
+           <span class="o">-</span> <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">special</span><span class="o">.</span><span class="n">riccati_yn</span><span class="p">(</span><span class="n">degree</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">argument</span><span class="p">))[</span><span class="mi">0</span><span class="p">][</span><span class="n">degree</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="d_riccati_bessel_j"><a class="viewcode-back" href="../../glmt.html#glmt.specials.d_riccati_bessel_j">[docs]</a><span class="k">def</span> <span class="nf">d_riccati_bessel_j</span><span class="p">(</span><span class="n">degree</span><span class="p">,</span> <span class="n">argument</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Derivative of Riccati-Bessel function of first kind &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">special</span><span class="o">.</span><span class="n">riccati_jn</span><span class="p">(</span><span class="n">degree</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">argument</span><span class="p">))[</span><span class="mi">1</span><span class="p">][</span><span class="n">degree</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="d_riccati_bessel_y"><a class="viewcode-back" href="../../glmt.html#glmt.specials.d_riccati_bessel_y">[docs]</a><span class="k">def</span> <span class="nf">d_riccati_bessel_y</span><span class="p">(</span><span class="n">degree</span><span class="p">,</span> <span class="n">argument</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Derivative of Riccati-Bessel function of second kind &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">special</span><span class="o">.</span><span class="n">riccati_jn</span><span class="p">(</span><span class="n">degree</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">argument</span><span class="p">))[</span><span class="mi">1</span><span class="p">][</span><span class="n">degree</span><span class="p">]</span> \
+           <span class="o">-</span> <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">special</span><span class="o">.</span><span class="n">riccati_yn</span><span class="p">(</span><span class="n">degree</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">argument</span><span class="p">))[</span><span class="mi">1</span><span class="p">][</span><span class="n">degree</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="d2_riccati_bessel_j"><a class="viewcode-back" href="../../glmt.html#glmt.specials.d2_riccati_bessel_j">[docs]</a><span class="k">def</span> <span class="nf">d2_riccati_bessel_j</span><span class="p">(</span><span class="n">degree</span><span class="p">,</span> <span class="n">argument</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; d2 Psi &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">argument</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">argument</span> <span class="o">=</span> <span class="mi">1</span><span class="n">E</span><span class="o">-</span><span class="mi">16</span>
+    <span class="k">return</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="n">argument</span><span class="p">)</span> \
+            <span class="o">*</span> <span class="p">(</span><span class="n">degree</span> <span class="o">+</span> <span class="nb">pow</span><span class="p">(</span><span class="n">degree</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="nb">pow</span><span class="p">(</span><span class="n">argument</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span> \
+            <span class="o">*</span> <span class="n">special</span><span class="o">.</span><span class="n">spherical_jn</span><span class="p">(</span><span class="n">degree</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">argument</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="d2_riccati_bessel_y"><a class="viewcode-back" href="../../glmt.html#glmt.specials.d2_riccati_bessel_y">[docs]</a><span class="k">def</span> <span class="nf">d2_riccati_bessel_y</span><span class="p">(</span><span class="n">degree</span><span class="p">,</span> <span class="n">argument</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; d2 xi &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">argument</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">argument</span> <span class="o">=</span> <span class="mi">1</span><span class="n">E</span><span class="o">-</span><span class="mi">16</span>
+    <span class="k">return</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="n">argument</span><span class="p">)</span> \
+            <span class="o">*</span> <span class="p">(</span><span class="n">degree</span> <span class="o">+</span> <span class="nb">pow</span><span class="p">(</span><span class="n">degree</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="nb">pow</span><span class="p">(</span><span class="n">argument</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span> \
+            <span class="o">*</span> <span class="n">special</span><span class="o">.</span><span class="n">spherical_yn</span><span class="p">(</span><span class="n">degree</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">argument</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="radial_riccati_bessel"><a class="viewcode-back" href="../../glmt.html#glmt.specials.radial_riccati_bessel">[docs]</a><span class="k">def</span> <span class="nf">radial_riccati_bessel</span><span class="p">(</span><span class="n">degree</span><span class="p">,</span> <span class="n">argument</span><span class="p">,</span> <span class="n">riccati_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Riccati-Bessel part of radial component &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">d2_riccati_bessel_j</span><span class="p">(</span><span class="n">degree</span><span class="p">,</span> <span class="n">argument</span><span class="p">)</span> <span class="o">+</span> <span class="n">riccati_list</span><span class="p">[</span><span class="n">degree</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="legendre_p"><a class="viewcode-back" href="../../glmt.html#glmt.specials.legendre_p">[docs]</a><span class="k">def</span> <span class="nf">legendre_p</span><span class="p">(</span><span class="n">degree</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">argument</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Associated Legendre function of integer order</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">order</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">pow</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="n">order</span><span class="p">)</span> <span class="o">*</span> <span class="n">misc</span><span class="o">.</span><span class="n">factorial</span><span class="p">(</span><span class="n">degree</span> <span class="o">+</span> <span class="n">order</span><span class="p">)</span> \
+               <span class="o">/</span> <span class="n">misc</span><span class="o">.</span><span class="n">factorial</span><span class="p">(</span><span class="n">degree</span> <span class="o">-</span> <span class="n">order</span><span class="p">)</span> \
+               <span class="o">*</span> <span class="n">legendre_p</span><span class="p">(</span><span class="n">degree</span><span class="p">,</span> <span class="o">-</span><span class="n">order</span><span class="p">,</span> <span class="n">argument</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">special</span><span class="o">.</span><span class="n">lpmv</span><span class="p">(</span><span class="n">order</span><span class="p">,</span> <span class="n">degree</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">argument</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="legendre_tau"><a class="viewcode-back" href="../../glmt.html#glmt.specials.legendre_tau">[docs]</a><span class="k">def</span> <span class="nf">legendre_tau</span><span class="p">(</span><span class="n">degree</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">argument</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Returns generalized Legendre function tau</span>
+
+<span class="sd">    Derivative is calculated based on relation 14.10.5:</span>
+<span class="sd">    http://dlmf.nist.gov/14.10</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">argument</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">argument</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="mi">1</span><span class="n">E</span><span class="o">-</span><span class="mi">16</span>
+    <span class="k">if</span> <span class="n">argument</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+        <span class="n">argument</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">1</span><span class="n">E</span><span class="o">-</span><span class="mi">16</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">degree</span> <span class="o">*</span> <span class="n">argument</span> <span class="o">*</span> <span class="n">legendre_p</span><span class="p">(</span><span class="n">degree</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">argument</span><span class="p">)</span> \
+            <span class="o">-</span> <span class="p">(</span><span class="n">degree</span> <span class="o">+</span> <span class="n">order</span><span class="p">)</span> <span class="o">*</span> <span class="n">legendre_p</span><span class="p">(</span><span class="n">degree</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">argument</span><span class="p">))</span> \
+            <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">argument</span> <span class="o">*</span> <span class="n">argument</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="legendre_pi"><a class="viewcode-back" href="../../glmt.html#glmt.specials.legendre_pi">[docs]</a><span class="k">def</span> <span class="nf">legendre_pi</span><span class="p">(</span><span class="n">degree</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">argument</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Generalized associated Legendre function pi</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">argument</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">argument</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="mi">1</span><span class="n">E</span><span class="o">-</span><span class="mi">16</span>
+    <span class="k">if</span> <span class="n">argument</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+        <span class="n">argument</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">1</span><span class="n">E</span><span class="o">-</span><span class="mi">16</span>
+    <span class="k">return</span> <span class="n">legendre_p</span><span class="p">(</span><span class="n">degree</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">argument</span><span class="p">)</span> \
+           <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">argument</span> <span class="o">*</span> <span class="n">argument</span><span class="p">))</span></div>
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Luiz Votto.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

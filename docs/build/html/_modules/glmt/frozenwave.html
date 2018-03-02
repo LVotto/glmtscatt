@@ -1,0 +1,162 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="Python">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>glmt.frozenwave &#8212; glmtscatt  documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for glmt.frozenwave</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Specific Frozen Wave parameters</span>
+
+<span class="sd">@author: Luiz Felipe Machado Votto</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="n">THETA</span> <span class="o">=</span> <span class="p">{</span><span class="o">-</span><span class="mi">15</span><span class="p">:</span> <span class="mf">20.2816</span><span class="p">,</span>
+         <span class="o">-</span><span class="mi">14</span><span class="p">:</span> <span class="mf">20.149</span><span class="p">,</span>
+         <span class="o">-</span><span class="mi">13</span><span class="p">:</span> <span class="mf">20.0155</span><span class="p">,</span>
+         <span class="o">-</span><span class="mi">12</span><span class="p">:</span> <span class="mf">19.8812</span><span class="p">,</span>
+         <span class="o">-</span><span class="mi">11</span><span class="p">:</span> <span class="mf">19.7459</span><span class="p">,</span>
+         <span class="o">-</span><span class="mi">10</span><span class="p">:</span> <span class="mf">19.6098</span><span class="p">,</span>
+         <span class="o">-</span><span class="mi">9</span><span class="p">:</span> <span class="mf">19.4728</span><span class="p">,</span>
+         <span class="o">-</span><span class="mi">8</span><span class="p">:</span> <span class="mf">19.3348</span><span class="p">,</span>
+         <span class="o">-</span><span class="mi">7</span><span class="p">:</span> <span class="mf">19.1959</span><span class="p">,</span>
+         <span class="o">-</span><span class="mi">6</span><span class="p">:</span> <span class="mf">19.056</span><span class="p">,</span>
+         <span class="o">-</span><span class="mi">5</span><span class="p">:</span> <span class="mf">18.9151</span><span class="p">,</span>
+         <span class="o">-</span><span class="mi">4</span><span class="p">:</span> <span class="mf">18.7732</span><span class="p">,</span>
+         <span class="o">-</span><span class="mi">3</span><span class="p">:</span> <span class="mf">18.6302</span><span class="p">,</span>
+         <span class="o">-</span><span class="mi">2</span><span class="p">:</span> <span class="mf">18.4862</span><span class="p">,</span>
+         <span class="o">-</span><span class="mi">1</span><span class="p">:</span> <span class="mf">18.3411</span><span class="p">,</span>
+         <span class="mi">0</span><span class="p">:</span> <span class="mf">18.1949</span><span class="p">,</span>
+         <span class="mi">1</span><span class="p">:</span> <span class="mf">18.0475</span><span class="p">,</span>
+         <span class="mi">2</span><span class="p">:</span> <span class="mf">17.899</span><span class="p">,</span>
+         <span class="mi">3</span><span class="p">:</span> <span class="mf">17.7492</span><span class="p">,</span>
+         <span class="mi">4</span><span class="p">:</span> <span class="mf">17.5982</span><span class="p">,</span>
+         <span class="mi">5</span><span class="p">:</span> <span class="mf">17.446</span><span class="p">,</span>
+         <span class="mi">6</span><span class="p">:</span> <span class="mf">17.2924</span><span class="p">,</span>
+         <span class="mi">7</span><span class="p">:</span> <span class="mf">17.1376</span><span class="p">,</span>
+         <span class="mi">8</span><span class="p">:</span> <span class="mf">16.9813</span><span class="p">,</span>
+         <span class="mi">9</span><span class="p">:</span> <span class="mf">16.8237</span><span class="p">,</span>
+         <span class="mi">10</span><span class="p">:</span> <span class="mf">16.6646</span><span class="p">,</span>
+         <span class="mi">11</span><span class="p">:</span> <span class="mf">16.504</span><span class="p">,</span>
+         <span class="mi">12</span><span class="p">:</span> <span class="mf">16.3419</span><span class="p">,</span>
+         <span class="mi">13</span><span class="p">:</span> <span class="mf">16.1782</span><span class="p">,</span>
+         <span class="mi">14</span><span class="p">:</span> <span class="mf">16.0128</span><span class="p">,</span>
+         <span class="mi">15</span><span class="p">:</span> <span class="mf">15.8458</span><span class="p">}</span>
+
+<span class="n">COEFF</span> <span class="o">=</span> <span class="p">{</span><span class="o">-</span><span class="mi">15</span><span class="p">:</span> <span class="o">-</span><span class="mf">2.37169E-17</span><span class="p">,</span>
+          <span class="o">-</span><span class="mi">14</span><span class="p">:</span> <span class="mf">0.0133641</span><span class="p">,</span>
+          <span class="o">-</span><span class="mi">13</span><span class="p">:</span> <span class="mf">0.023287</span><span class="p">,</span>
+          <span class="o">-</span><span class="mi">12</span><span class="p">:</span> <span class="mf">0.0252276</span><span class="p">,</span>
+          <span class="o">-</span><span class="mi">11</span><span class="p">:</span> <span class="mf">0.0170089</span><span class="p">,</span>
+          <span class="o">-</span><span class="mi">10</span><span class="p">:</span> <span class="mf">1.05964E-14</span><span class="p">,</span>
+          <span class="o">-</span><span class="mi">9</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.0207887</span><span class="p">,</span>
+          <span class="o">-</span><span class="mi">8</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.0378413</span><span class="p">,</span>
+          <span class="o">-</span><span class="mi">7</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.0432472</span><span class="p">,</span>
+          <span class="o">-</span><span class="mi">6</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.031183</span><span class="p">,</span>
+          <span class="o">-</span><span class="mi">5</span><span class="p">:</span> <span class="o">-</span><span class="mf">1.05783E-14</span><span class="p">,</span>
+          <span class="o">-</span><span class="mi">4</span><span class="p">:</span> <span class="mf">0.0467745</span><span class="p">,</span>
+          <span class="o">-</span><span class="mi">3</span><span class="p">:</span> <span class="mf">0.10091</span><span class="p">,</span>
+          <span class="o">-</span><span class="mi">2</span><span class="p">:</span> <span class="mf">0.151365</span><span class="p">,</span>
+          <span class="o">-</span><span class="mi">1</span><span class="p">:</span> <span class="mf">0.187098</span><span class="p">,</span>
+          <span class="mi">0</span><span class="p">:</span> <span class="mf">0.2</span><span class="p">,</span>
+          <span class="mi">1</span><span class="p">:</span> <span class="mf">0.187098</span><span class="p">,</span>
+          <span class="mi">2</span><span class="p">:</span> <span class="mf">0.151365</span><span class="p">,</span>
+          <span class="mi">3</span><span class="p">:</span> <span class="mf">0.10091</span><span class="p">,</span>
+          <span class="mi">4</span><span class="p">:</span> <span class="mf">0.0467745</span><span class="p">,</span>
+          <span class="mi">5</span><span class="p">:</span> <span class="o">-</span><span class="mf">1.05783E-14</span><span class="p">,</span>
+          <span class="mi">6</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.031183</span><span class="p">,</span>
+          <span class="mi">7</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.0432472</span><span class="p">,</span>
+          <span class="mi">8</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.0378413</span><span class="p">,</span>
+          <span class="mi">9</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.0207887</span><span class="p">,</span>
+          <span class="mi">10</span><span class="p">:</span> <span class="mf">1.05964E-14</span><span class="p">,</span>
+          <span class="mi">11</span><span class="p">:</span> <span class="mf">0.0170089</span><span class="p">,</span>
+          <span class="mi">12</span><span class="p">:</span> <span class="mf">0.0252276</span><span class="p">,</span>
+          <span class="mi">13</span><span class="p">:</span> <span class="mf">0.023287</span><span class="p">,</span>
+          <span class="mi">14</span><span class="p">:</span> <span class="mf">0.0133641</span><span class="p">,</span>
+          <span class="mi">15</span><span class="p">:</span> <span class="o">-</span><span class="mf">2.37169E-17</span><span class="p">}</span>
+
+<div class="viewcode-block" id="axicon_omega"><a class="viewcode-back" href="../../glmt.html#glmt.frozenwave.axicon_omega">[docs]</a><span class="k">def</span> <span class="nf">axicon_omega</span><span class="p">(</span><span class="n">degree</span><span class="p">,</span> <span class="n">axicon</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">axicon</span><span class="p">))</span> <span class="o">*</span> <span class="p">(</span><span class="n">degree</span> <span class="o">+</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Luiz Votto.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
