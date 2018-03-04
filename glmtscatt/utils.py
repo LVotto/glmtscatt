@@ -14,7 +14,7 @@ import time
 import numpy as np
 import base64
 
-from glmt.constants import WAVE_NUMBER
+from glmtscatt.constants import WAVE_NUMBER
 
 
 def open_file(path='../pickles/', file_name='', formatting='.pickle', operation='rb'):

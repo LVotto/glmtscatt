@@ -14,11 +14,11 @@ from matplotlib import cm
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
 
-import glmt.glmt as glmt
-from glmt.field import SphericalField, CartesianField
-from glmt.specials import squared_bessel_0
-from glmt.utils import zero, get_max_it, normalize_list, open_file, PlotHandler
-from glmt.constants import AXICON, WAVE_NUMBER
+import glmtscatt.glmt as glmt
+from glmtscatt.field import SphericalField, CartesianField
+from glmtscatt.specials import squared_bessel_0
+from glmtscatt.utils import zero, get_max_it, normalize_list, open_file, PlotHandler
+from glmtscatt.constants import AXICON, WAVE_NUMBER
 
 #STOP = 10/(WAVE_NUMBER * np.sin(AXICON))  # for bessel beam
 STOP = 100E-6
@@ -695,7 +695,7 @@ def test_circle_bessel():
 
 
 def test_increment_decay():
-    from glmt.specials import _riccati_bessel_j, d2_riccati_bessel_j, legendre_p
+    from glmtscatt.specials import _riccati_bessel_j, d2_riccati_bessel_j, legendre_p
     from glmt.glmt import plane_wave_coefficient, beam_shape_g
     max_it = 1000
     r = np.linspace(0, 100E-6, 5)
@@ -887,9 +887,9 @@ def test_mie_coeff_a(stop):
     if nan_j:
         print("Got NaN since ", nan_j)
 
-from glmt.constants import (PERMEABILITY, SPHERE_PERMEABILITY,
+from glmtscatt.constants import (PERMEABILITY, SPHERE_PERMEABILITY,
                             REFFRACTIVE_INDEX, WAVELENGTH)
-from glmt.specials import (riccati_bessel_j, riccati_bessel_y,
+from glmtscatt.specials import (riccati_bessel_j, riccati_bessel_y,
                            d_riccati_bessel_j, d_riccati_bessel_y)
 def mie_coefficient_a_den(order, diameter=10E-6, permeability=PERMEABILITY,
                       sp_permeability=SPHERE_PERMEABILITY,

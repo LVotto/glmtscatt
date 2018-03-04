@@ -6,7 +6,7 @@ Module for representing fields in spherical and cartesian coordinates.
 """
 
 from abc import ABC, abstractmethod
-from glmt.utils import zero, one
+from glmtscatt.utils import zero, one
 import numpy as np
 
 def function_sum(function_1, function_2):

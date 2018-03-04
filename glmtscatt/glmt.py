@@ -13,16 +13,16 @@ from scipy.io import mmread
 import numpy as np
 import pickle
 
-from glmt.constants import (AXICON, WAVE_NUMBER, PERMEABILITY,
+from glmtscatt.constants import (AXICON, WAVE_NUMBER, PERMEABILITY,
                            SPHERE_PERMEABILITY, REFFRACTIVE_INDEX,
                            WAVELENGTH)
-from glmt.specials import (_riccati_bessel_j, _riccati_bessel_y,
+from glmtscatt.specials import (_riccati_bessel_j, _riccati_bessel_y,
                            legendre_p, legendre_tau, legendre_pi,
                            riccati_bessel_j, riccati_bessel_y,
                            d_riccati_bessel_j, d_riccati_bessel_y,
                            d2_riccati_bessel_j, d2_riccati_bessel_y)
-from glmt.frozenwave import THETA, COEFF, axicon_omega
-from glmt.utils import get_max_it
+from glmtscatt.frozenwave import THETA, COEFF, axicon_omega
+from glmtscatt.utils import get_max_it
 
 
 path = './pickle'
@@ -197,7 +197,7 @@ def beam_shape_mtx(degree, order, mode='TM', shape='3'):
         return table[degree, order]
 
 def plane_wave_coefficient(degree, wave_number_k):
-    """ Computes plane wave coefficient c_{n}^{pw} """
+    """ Computes plane wave coefficient :math:`c_{n}^{pw}` """
     return (1 / (1j * wave_number_k)) \
             * pow(-1j, degree) \
             * (2 * degree + 1) / (degree * (degree + 1))
@@ -206,7 +206,7 @@ def mie_coefficient_a(order, diameter=10E-6, permeability=PERMEABILITY,
                       sp_permeability=SPHERE_PERMEABILITY,
                       wavelength=WAVELENGTH,
                       reffractive=REFFRACTIVE_INDEX):
-    """ Obtains the value of Mie coefficient a_n.
+    """ Obtains the value of Mie coefficient :math:`a_n`.
 
     Due to the magnitude of the denominator for sufficiently high orders,
     we treat the case where this denominator is too high or zero - which
@@ -233,7 +233,7 @@ def mie_coefficient_b(order, diameter=10E-6, permeability=PERMEABILITY,
                       sp_permeability=SPHERE_PERMEABILITY,
                       wavelength=WAVELENGTH,
                       reffractive=REFFRACTIVE_INDEX):
-    """ Obtains the value of Mie coefficient b_n.
+    """ Obtains the value of Mie coefficient :math:`b_n`.
 
     Denominator is treated as in mie_coefficient_a.
     """
@@ -330,7 +330,7 @@ def theta_electric_i_tm(radial, theta, phi, wave_number_k):
     return result / radial
 
 def theta_electric_s_tm(radial, theta, phi, wave_number_k):
-    """ Computes the theta component of inciding electric field in TM mode.
+    """ Computes the theta component of scattered electric field in TM mode.
     """
     result = 0
     n = 1
@@ -381,7 +381,7 @@ def theta_electric_i_te(radial, theta, phi, wave_number_k):
     return result / radial
 
 def theta_electric_s_te(radial, theta, phi, wave_number_k):
-    """ Computes the theta component of inciding electric field in TE mode.
+    """ Computes the theta component of scattered electric field in TE mode.
     """
     result = 0
     n = 1
@@ -435,7 +435,7 @@ def phi_electric_i_tm(radial, theta, phi, wave_number_k):
     return 1j * result / radial
 
 def phi_electric_s_tm(radial, theta, phi, wave_number_k):
-    """ Computes the phi component of inciding electric field in TM mode.
+    """ Computes the phi component of scattered electric field in TM mode.
     """
     result = 0
     n = 1
@@ -490,7 +490,7 @@ def phi_electric_i_te(radial, theta, phi, wave_number_k):
     return 1j * result / radial
 
 def phi_electric_s_te(radial, theta, phi, wave_number_k):
-    """ Computes the phi component of inciding electric field in TE mode.
+    """ Computes the phi component of scattered electric field in TE mode.
     """
     result = 0
     n = 1
