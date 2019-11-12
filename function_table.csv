@@ -1,0 +1,37 @@
+field;kind;mode;component;multiplicative;mie_coefficient;radial_function;theta_function
+E;i;TM;radial;k * one;one;ri;p
+E;i;TM;theta;inverse;one;dj;tau
+E;i;TM;phi;1j * inverse;one;dj;pi
+E;i;TE;radial;zero;;;
+E;i;TE;theta;inverse;one;j;pi
+E;i;TE;phi;1j * inverse;one;j;tau
+E;s;TM;radial;k * one;a;rs;p
+E;s;TM;theta;-1 * inverse;a;dy;tau
+E;s;TM;phi;-1j * inverse;a;dy;pi
+E;s;TE;radial;zero;;;
+E;s;TE;theta;-1 * inverse;b;y;pi
+E;s;TE;phi;-1j * inverse;b;y;tau
+E;sp;TM;radial;k * one;c;;p
+E;sp;TM;theta;;;;
+E;sp;TM;phi;;;;
+E;sp;TE;radial;;;;
+E;sp;TE;theta;;;;
+E;sp;TE;phi;;;;
+H;i;TM;radial;zero;;;
+H;i;TM;theta;-1 * inverse;one;j;pi
+H;i;TM;phi;-1j * inverse;one;j;tau
+H;i;TE;radial;k * one;one;ri;p
+H;i;TE;theta;inverse;one;dj;tau
+H;i;TE;phi;1j * inverse;one;dj;pi
+H;s;TM;radial;zero;;;
+H;s;TM;theta;inverse;a;y;pi
+H;s;TM;phi;1j * inverse;a;y;tau
+H;s;TE;radial;-k * one;b;rs;p
+H;s;TE;theta;-1 * inverse;b;dy;tau
+H;s;TE;phi;-1j * inverse;b;dy;pi
+H;sp;TM;radial;zero;;;
+H;sp;TM;theta;;;;
+H;sp;TM;phi;;;;
+H;sp;TE;radial;;;;
+H;sp;TE;theta;;;;
+H;sp;TE;phi;;;;

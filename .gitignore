@@ -1,0 +1,4 @@
+*.pickle
+*.mtx
+*.pyc
+**/__pycache__
